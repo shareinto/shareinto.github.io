@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>linux的控制终端 | shareinto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="问题&amp;#160; &amp;#160; &amp;#160; &amp;#160;我们都知道，linux打开一个终端运行一个程序，在程序运行未结束的时候如果关掉终端的话，那么该程序也会跟着退出。但我们有时候需要长期间的运行一个程序，又不想开着我们的终端，那么我们就可以利用下面的语句1$ nohup &amp;lt;command&amp;gt; &amp;amp;  nohup的意思是让我们的程序进程忽略所有挂断（SIGHUP）信号。 “&amp;am">
+<meta name="keywords" content="linux,操作系统">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux的控制终端">
+<meta property="og:url" content="http://yoursite.com/2016/11/17/linux的控制终端/index.html">
+<meta property="og:site_name" content="shareinto">
+<meta property="og:description" content="问题&amp;#160; &amp;#160; &amp;#160; &amp;#160;我们都知道，linux打开一个终端运行一个程序，在程序运行未结束的时候如果关掉终端的话，那么该程序也会跟着退出。但我们有时候需要长期间的运行一个程序，又不想开着我们的终端，那么我们就可以利用下面的语句1$ nohup &amp;lt;command&amp;gt; &amp;amp;  nohup的意思是让我们的程序进程忽略所有挂断（SIGHUP）信号。 “&amp;am">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://7xlovv.com1.z0.glb.clouddn.com/session.jpg">
+<meta property="og:image" content="http://7xlovv.com1.z0.glb.clouddn.com/session2.jpg">
+<meta property="og:updated_time" content="2018-09-17T06:24:56.715Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="linux的控制终端">
+<meta name="twitter:description" content="问题&amp;#160; &amp;#160; &amp;#160; &amp;#160;我们都知道，linux打开一个终端运行一个程序，在程序运行未结束的时候如果关掉终端的话，那么该程序也会跟着退出。但我们有时候需要长期间的运行一个程序，又不想开着我们的终端，那么我们就可以利用下面的语句1$ nohup &amp;lt;command&amp;gt; &amp;amp;  nohup的意思是让我们的程序进程忽略所有挂断（SIGHUP）信号。 “&amp;am">
+<meta name="twitter:image" content="http://7xlovv.com1.z0.glb.clouddn.com/session.jpg">
+  
+    <link rel="alternative" href="/atom.xml" title="shareinto" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+			<img lazy-src="http://7xlovv.com1.z0.glb.clouddn.com/litten.png" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/">Dockerfun</a></h1>
+		</hgroup>
+
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						<div class="icon-wrap icon-link hide" data-idx="2">
+							<div class="loopback_l"></div>
+							<div class="loopback_r"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						<li>友情链接</li>
+						
+						
+						<li>关于我</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="#" title="github">github</a>
+					        
+								<a class="weibo" target="_blank" href="#" title="weibo">weibo</a>
+					        
+								<a class="rss" target="_blank" href="#" title="rss">rss</a>
+					        
+								<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/algorithm/" style="font-size: 10px;">algorithm</a> <a href="/tags/centos/" style="font-size: 14px;">centos</a> <a href="/tags/cpu/" style="font-size: 10px;">cpu</a> <a href="/tags/docker/" style="font-size: 18px;">docker</a> <a href="/tags/docker-compose/" style="font-size: 10px;">docker-compose</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/git-flow/" style="font-size: 10px;">git-flow</a> <a href="/tags/go/" style="font-size: 10px;">go</a> <a href="/tags/ios/" style="font-size: 10px;">ios</a> <a href="/tags/java/" style="font-size: 14px;">java</a> <a href="/tags/kernel/" style="font-size: 12px;">kernel</a> <a href="/tags/kubernetes/" style="font-size: 14px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 20px;">linux</a> <a href="/tags/performance/" style="font-size: 10px;">performance</a> <a href="/tags/thread/" style="font-size: 10px;">thread</a> <a href="/tags/tool/" style="font-size: 10px;">tool</a> <a href="/tags/操作系统/" style="font-size: 16px;">操作系统</a> <a href="/tags/效率/" style="font-size: 10px;">效率</a>
+					</div>
+				</section>
+				
+				
+				
+				<section class="switch-part switch-part3">
+					<div id="js-friends">
+					
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">奥巴马的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">卡卡的美丽传说</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">本泽马的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">吉格斯的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">习大大大不同</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">托蒂的博客</a>
+			        
+			        </div>
+				</section>
+				
+
+				
+				
+				<section class="switch-part switch-part4">
+				
+					<div id="js-aboutme">虽然不知道你在说什么，但是感觉好厉害的样子...</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide">Dockerfun</h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="http://7xlovv.com1.z0.glb.clouddn.com/litten.png" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author">Dockerfun</h1>
+			</hgroup>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="#" title="github">github</a>
+			        
+						<a class="weibo" target="_blank" href="#" title="weibo">weibo</a>
+			        
+						<a class="rss" target="_blank" href="#" title="rss">rss</a>
+			        
+						<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-linux的控制终端" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/11/17/linux的控制终端/" class="article-date">
+  	<time datetime="2016-11-17T10:55:08.000Z" itemprop="datePublished">2016-11-17</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      linux的控制终端
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/">linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/操作系统/">操作系统</a></li></ul>
+	</div>
+
+        
+	<div class="article-category tagcloud">
+	<a class="article-category-link" href="/categories/linux/">linux</a>
+	</div>
+
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><p>&#160; &#160; &#160; &#160;我们都知道，linux打开一个终端运行一个程序，在程序运行未结束的时候如果关掉终端的话，那么该程序也会跟着退出。但我们有时候需要长期间的运行一个程序，又不想开着我们的终端，那么我们就可以利用下面的语句<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nohup &lt;<span class="built_in">command</span>&gt; &amp;</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>nohup的意思是让我们的程序进程忽略所有挂断（SIGHUP）信号。</li>
+<li>“&amp;” 符号表示让我们的程序进程进入后台运行</li>
+</ul>
+<p>为什么这样做以后我们的程序就不会退出呢，接下来我们先补充一些相关的知识</p>
+<h1 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h1><h2 id="终端"><a href="#终端" class="headerlink" title="终端"></a>终端</h2><p>&#160; &#160; &#160; &#160;终端(Terminal)也是一台物理设备，只用于输入输出，本身没有强大的计算能力。一台计算机只有一个控制台，在计算资源紧张的时代，人们想共享一台计算机，可以通过终端连接到计算机上，将指令输入终端，终端传送给计算机，计算机完成指令后，将输出传送给终端，终端将结果显示给用户。</p>
+<h2 id="登录终端"><a href="#登录终端" class="headerlink" title="登录终端"></a>登录终端</h2><p>&#160; &#160; &#160; &#160;在早期的计算机上面，用户用哑终端（用硬连接连到主机）进行登录，这种登录要经由内核的终端设备驱动程序。因为连到主机上的终端设备数是固定的，所以同时的登录数也就有了已知的上限。随着图形终端的出现，创建终端窗口的应用也被开发出来，它仿真了基于字符的终端，使用户可以用熟悉的方式（shell命令行）与主机进行交互。包括使用网络进行远程登录的远程终端也是使用的这种方式。</p>
+<h2 id="伪终端"><a href="#伪终端" class="headerlink" title="伪终端"></a>伪终端</h2><p>&#160; &#160; &#160; &#160;随着图形终端的出现，创建终端窗口的应用也被开发出来，它仿真了基于字符的终端，使用户可以用熟悉的方式（shell命令行）与主机进行交互。包括使用网络进行远程登录的远程终端也是使用的这种方式。网络登录与传统的串行终端登录的区别在于，前者必须等待一个网络连接请求到达，而不是使一个进程等待每一个可能的登录。为了使同一个软件既能处理终端登录又能处理网络登录，系统使用了一种称为伪终端（pseudo terminal）的软件驱动程序，<br>它仿真串行终端的运行行为，并将终端操作映射为网络操作。</p>
+<h2 id="进程组"><a href="#进程组" class="headerlink" title="进程组"></a>进程组</h2><p>&#160; &#160; &#160; &#160;每个进程除了有一进程ID外，还属于一个进程组，进程组就是一个或多个进程的集合。<br>&#160; &#160; &#160; &#160;那为啥Linux里要有进程组呢？其实，提供进程组就是为了方便对进程进行管理。假设要完成一个任务，需要同时并发100个进程。当用户处于某种原因要终止 这个任务时，要是没有进程组，就需要手动的一个个去杀死这100个进程。</p>
+<h2 id="作业"><a href="#作业" class="headerlink" title="作业"></a>作业</h2><p>&#160; &#160; &#160; &#160;Shell分前后台来控制的不是进程而是作业（Job）或者进程组（Process Group）。一个前台作业可以由多个进程组成，一个后台也可以由多个进程组成，Shell可以运行一个前台作业和任意多个后台作业，这称为作业控制。<br>&#160; &#160; &#160; &#160;作业与进程组的区别：如果作业中的某个进程又创建了子进程，则子进程不属于作业。一旦作业运行结束，Shell就把自己提到前台，如果原来的前台进程还存在（如果这个子进程还没终止），它自动变为后台进程组。</p>
+<h2 id="会话"><a href="#会话" class="headerlink" title="会话"></a>会话</h2><p>&#160; &#160; &#160; &#160;会话（session）是一个或多个进程组的集合。<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/session.jpg" alt="会话"><br>&#160; &#160; &#160; &#160;如图，该会话中有三个进程组。通常是由shell的管道将几个进程编成一组的。上图有可能是由下列形式的shell命令形成的:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ proc1 | proc2 &amp; </span><br><span class="line">$ proc3 | proc4 | proc5</span><br></pre></td></tr></table></figure></p>
+<h2 id="控制终端"><a href="#控制终端" class="headerlink" title="控制终端"></a>控制终端</h2><ul>
+<li>当一个终端与一个会话相关联后，那么这个终端就称为该会话的控制终端(controlling terminal)。</li>
+<li>建立与控制终端连接的会话首进程被称为控制进程(controlling process)。</li>
+<li>一个会话中的几个进程组可被分成一个前台进程组(foreground process group)以及一个或多个后台进程组(background process group)。</li>
+<li>如果一个会话有一个控制终端的话， 则它有一个前台进程组，其他进程组为后台进程组。</li>
+<li>无论何时键入终端的中断键或退出键，都会将中断信号或退出信号发送至前台进程组的所有进程。</li>
+<li>如果终端检测到调制解调器（或网络）断开，则挂断信号（SIGHUP）发送至控制进程（会话首进程），如果会<strong>话首进程退出,则将挂断信号（SIGHUP）发送至前台进程组的所有进程</strong>。<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/session2.jpg" alt="会话"><br>&#160; &#160; &#160; &#160;有的时候程序的标准输入，输出会被重定向到其它地方，那么会话中的进程要<strong>获取终端的话可以open文件/dev/tty</strong>，这就告诉内核我要获取当前会话的控制终端。如果会话没有控制终端的话，那么对此设备的open将失败。</li>
+</ul>
+<h2 id="孤儿进程组"><a href="#孤儿进程组" class="headerlink" title="孤儿进程组"></a>孤儿进程组</h2><p>&#160; &#160; &#160; &#160;孤儿进程组定义为：该组中每个成员的父进程要么是该组的一个成员，要么不是该组所属会话的成员。换句话说，一个进程组中有一个进程，其父进程在属于同一个会话的另一个组中，那么它就不是孤儿进程组。</p>
+<blockquote>
+<p>在POSIX.1中，要求向新产生的孤儿进程组中处于停止状态的每一个进程发送挂断信号（SIGHUP），接着又向其发送继续信号（SIGCONT）。<strong>对挂断信号的系统默认动作是终止该进程</strong>。</p>
+</blockquote>
+<h1 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h1><ol>
+<li>当控制中端退出的时候，首先会发一个挂断信号(SIGHUP)给会话首进程，一般会话首进程都是shell进程，而此动作将导致shell进程退出。</li>
+<li>当会话首进程退出时，挂断信号（SIGHUP）还会继续发送给前台进程组的所有进程。</li>
+<li>若进程未对挂断信号（SIGHUP）进行处理时，内核默认动作是终止该进程。</li>
+</ol>
+<p>&#160; &#160; &#160; &#160;由此我们可以得出，导致进程退出的罪魁祸首就是这一个挂断信号（SIGHUP）。回到文章最前面提出的解决方案：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nohup &lt;<span class="built_in">command</span>&gt; &amp;</span><br></pre></td></tr></table></figure></p>
+<p>&#160; &#160; &#160; &#160;其中的nohup命令是让程序忽略<strong>所有</strong>的挂断信号，所以就算终端退出，我们的程序也不会退出了。而最后面的”&amp;”符号其实对防止程序退出没有任何用处。</p>
+<h1 id="深入"><a href="#深入" class="headerlink" title="深入"></a>深入</h1><p>&#160; &#160; &#160; &#160;那么我们能不能让程序自动具备防退出功能呢？其实原理很简单，我们只要注册挂断信号(SIGHUP)的处理程序，那么内核就认为你对该信号作出响应了，自然就不会终止程序了。来看代码：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"apue.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt; </span></span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sig_hup</span><span class="params">(<span class="keyword">int</span> signo)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"received signup\n"</span>);</span><br><span class="line">&#125;  </span><br><span class="line"><span class="keyword">static</span> <span class="keyword">int</span> count; </span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  setbuf(<span class="built_in">stdout</span>,<span class="literal">NULL</span>);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"pid = %d\n"</span>,getpid());</span><br><span class="line">  signal(SIGHUP, sig_hup);</span><br><span class="line">  <span class="keyword">while</span>(<span class="number">1</span>)</span><br><span class="line">  &#123; </span><br><span class="line">    count++;</span><br><span class="line">  &#125; </span><br><span class="line">  <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>&#160; &#160; &#160; &#160;函数void (<em>signal(int, void(</em>)(int)))(int) 带两个参数,一个为整型,一个为函数指针，返回值也是一个函数指针。这两个函数指针所指向的函数接受一个整型参数 且没有返回值。我们代码中定义的sig_hup正好是这一种类型。因此可以将其注册为挂断信号（SIGHUP）的处理函数。这样一来，我们的程序就不会因收到挂断信号而退出了。</p>
+<h1 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h1><p>&#160; &#160; &#160; &#160;如果我们再次向进程发送SIGHUP信号(可利用kill -1命令)，那么我们的程序将会怎样呢，对于这种状况我们又该如何应对呢？</p>
+<p>(全文完)</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/12/07/linux中的文件强制锁/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          linux中的文件强制锁
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/10/31/制作unix环境高级编程编译环境的docker镜像/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">制作unix环境高级编程编译环境的docker镜像</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">分享到：</span>
+		<a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<a class="jiathis_button_tumblr"></a>
+		<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
+
+
+
+<div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="linux的控制终端" data-title="linux的控制终端" data-url="http://yoursite.com/2016/11/17/linux的控制终端/"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"true"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2018 Dockerfun
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: true,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+<script src="http://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  </div>
+</body>
+</html>

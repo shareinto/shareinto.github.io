@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>maven和docker调试java应用程序 | shareinto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="问题&amp;#160; &amp;#160; &amp;#160; &amp;#160;平常开发java应用程序，我们经常会遇到这样的一种场景：开发机使用的是Windows操作系统，但往往程序是跑在Linux操作系统上面的，甚至会调用一些Linux上的程序或者是系统api等，这种情况下我们的程序调试就会变得非常的麻烦。以往解决这种问题的方式一般是在Windows装一个Linux虚拟机，然后将程序部署到虚拟机上进行调试。这种方式">
+<meta name="keywords" content="docker,tool,效率">
+<meta property="og:type" content="article">
+<meta property="og:title" content="maven和docker调试java应用程序">
+<meta property="og:url" content="http://yoursite.com/2016/12/31/maven+docker调试java应用程序/index.html">
+<meta property="og:site_name" content="shareinto">
+<meta property="og:description" content="问题&amp;#160; &amp;#160; &amp;#160; &amp;#160;平常开发java应用程序，我们经常会遇到这样的一种场景：开发机使用的是Windows操作系统，但往往程序是跑在Linux操作系统上面的，甚至会调用一些Linux上的程序或者是系统api等，这种情况下我们的程序调试就会变得非常的麻烦。以往解决这种问题的方式一般是在Windows装一个Linux虚拟机，然后将程序部署到虚拟机上进行调试。这种方式">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://7xlovv.com1.z0.glb.clouddn.com/docker-debug.png">
+<meta property="og:image" content="http://7xlovv.com1.z0.glb.clouddn.com/docker-debug2.png">
+<meta property="og:image" content="http://7xlovv.com1.z0.glb.clouddn.com/docker-debug3.png">
+<meta property="og:image" content="http://7xlovv.com1.z0.glb.clouddn.com/docker-debug4.png">
+<meta property="og:image" content="http://7xlovv.com1.z0.glb.clouddn.com/docker-debug5.png">
+<meta property="og:updated_time" content="2018-09-17T06:24:56.715Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="maven和docker调试java应用程序">
+<meta name="twitter:description" content="问题&amp;#160; &amp;#160; &amp;#160; &amp;#160;平常开发java应用程序，我们经常会遇到这样的一种场景：开发机使用的是Windows操作系统，但往往程序是跑在Linux操作系统上面的，甚至会调用一些Linux上的程序或者是系统api等，这种情况下我们的程序调试就会变得非常的麻烦。以往解决这种问题的方式一般是在Windows装一个Linux虚拟机，然后将程序部署到虚拟机上进行调试。这种方式">
+<meta name="twitter:image" content="http://7xlovv.com1.z0.glb.clouddn.com/docker-debug.png">
+  
+    <link rel="alternative" href="/atom.xml" title="shareinto" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+			<img lazy-src="http://7xlovv.com1.z0.glb.clouddn.com/litten.png" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/">Dockerfun</a></h1>
+		</hgroup>
+
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						<div class="icon-wrap icon-link hide" data-idx="2">
+							<div class="loopback_l"></div>
+							<div class="loopback_r"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						<li>友情链接</li>
+						
+						
+						<li>关于我</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="#" title="github">github</a>
+					        
+								<a class="weibo" target="_blank" href="#" title="weibo">weibo</a>
+					        
+								<a class="rss" target="_blank" href="#" title="rss">rss</a>
+					        
+								<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/algorithm/" style="font-size: 10px;">algorithm</a> <a href="/tags/centos/" style="font-size: 14px;">centos</a> <a href="/tags/cpu/" style="font-size: 10px;">cpu</a> <a href="/tags/docker/" style="font-size: 18px;">docker</a> <a href="/tags/docker-compose/" style="font-size: 10px;">docker-compose</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/git-flow/" style="font-size: 10px;">git-flow</a> <a href="/tags/go/" style="font-size: 10px;">go</a> <a href="/tags/ios/" style="font-size: 10px;">ios</a> <a href="/tags/java/" style="font-size: 14px;">java</a> <a href="/tags/kernel/" style="font-size: 12px;">kernel</a> <a href="/tags/kubernetes/" style="font-size: 14px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 20px;">linux</a> <a href="/tags/performance/" style="font-size: 10px;">performance</a> <a href="/tags/thread/" style="font-size: 10px;">thread</a> <a href="/tags/tool/" style="font-size: 10px;">tool</a> <a href="/tags/操作系统/" style="font-size: 16px;">操作系统</a> <a href="/tags/效率/" style="font-size: 10px;">效率</a>
+					</div>
+				</section>
+				
+				
+				
+				<section class="switch-part switch-part3">
+					<div id="js-friends">
+					
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">奥巴马的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">卡卡的美丽传说</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">本泽马的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">吉格斯的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">习大大大不同</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">托蒂的博客</a>
+			        
+			        </div>
+				</section>
+				
+
+				
+				
+				<section class="switch-part switch-part4">
+				
+					<div id="js-aboutme">虽然不知道你在说什么，但是感觉好厉害的样子...</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide">Dockerfun</h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="http://7xlovv.com1.z0.glb.clouddn.com/litten.png" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author">Dockerfun</h1>
+			</hgroup>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="#" title="github">github</a>
+			        
+						<a class="weibo" target="_blank" href="#" title="weibo">weibo</a>
+			        
+						<a class="rss" target="_blank" href="#" title="rss">rss</a>
+			        
+						<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-maven+docker调试java应用程序" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/12/31/maven+docker调试java应用程序/" class="article-date">
+  	<time datetime="2016-12-31T06:29:13.000Z" itemprop="datePublished">2016-12-31</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      maven和docker调试java应用程序
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tool/">tool</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/效率/">效率</a></li></ul>
+	</div>
+
+        
+	<div class="article-category tagcloud">
+	<a class="article-category-link" href="/categories/docker/">docker</a>
+	</div>
+
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><p>&#160; &#160; &#160; &#160;平常开发java应用程序，我们经常会遇到这样的一种场景：开发机使用的是Windows操作系统，但往往程序是跑在Linux操作系统上面的，甚至会调用一些Linux上的程序或者是系统api等，这种情况下我们的程序调试就会变得非常的麻烦。以往解决这种问题的方式一般是在Windows装一个Linux虚拟机，然后将程序部署到虚拟机上进行调试。这种方式虽然可以解决问题，但是总感觉效率太低：一来是虚拟机消耗太多的系统资源，二来编译和部署过程相当的繁琐（虽然你可以自己编写自动化脚本，但总归难以通用化）。</p>
+<h1 id="Docker的出现"><a href="#Docker的出现" class="headerlink" title="Docker的出现"></a>Docker的出现</h1><p>&#160; &#160; &#160; &#160;Docker相比虚拟机来说，拥有更小的系统资源占用，更快的部署速度等优势，而且现在Windows上也能完美的运行Docker服务了。前提条件是要升级到Win10操作系统。至于Windows上Docker的安装非常的简单，Docker官方提供了傻瓜安装包，我们只要一键到底就行了。<br><a href="https://docs.docker.com/docker-for-windows/" target="_blank" rel="noopener">安装点我</a></p>
+<h1 id="与maven配合使用"><a href="#与maven配合使用" class="headerlink" title="与maven配合使用"></a>与maven配合使用</h1><p>&#160; &#160; &#160; &#160;Docker自身提供了丰富RestApi供大家调用，其本身的DockerCli也是通过这些api与其Daemon进程进行交互的，因此我们可以通过编程的方式来使用Docker。我们可以利用maven的插件来完成我们程序的快速部署工作。现下farbric8就已提供了一款功能丰富的maven插件，接下来我们就来看一下如何使用它：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-assembly-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">finalName</span>&gt;</span>ROOT<span class="tag">&lt;/<span class="name">finalName</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">appendAssemblyId</span>&gt;</span>false<span class="tag">&lt;/<span class="name">appendAssemblyId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">descriptorRefs</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">descriptorRef</span>&gt;</span>jar-with-dependencies<span class="tag">&lt;/<span class="name">descriptorRef</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">descriptorRefs</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">archive</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">manifest</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">mainClass</span>&gt;</span>$&#123;mainclass&#125;<span class="tag">&lt;/<span class="name">mainClass</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">manifest</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">archive</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">id</span>&gt;</span>make-assembly<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>package<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>single<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.fabric8<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>docker-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>0.18.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dockerHost</span>&gt;</span>$&#123;dockerHost&#125;<span class="tag">&lt;/<span class="name">dockerHost</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">useColor</span>&gt;</span>true<span class="tag">&lt;/<span class="name">useColor</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">verbose</span>&gt;</span>true<span class="tag">&lt;/<span class="name">verbose</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">images</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">image</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">name</span>&gt;</span>$&#123;image.name&#125;<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">from</span>&gt;</span>$&#123;image.from&#125;<span class="tag">&lt;/<span class="name">from</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">ports</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">port</span>&gt;</span>5005<span class="tag">&lt;/<span class="name">port</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">ports</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">assembly</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">mode</span>&gt;</span>dir<span class="tag">&lt;/<span class="name">mode</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">targetDir</span>&gt;</span>$&#123;container.targetDir&#125;<span class="tag">&lt;/<span class="name">targetDir</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">inline</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">fileSets</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;<span class="name">fileSet</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;<span class="name">includes</span>&gt;</span></span><br><span class="line">                                        <span class="tag">&lt;<span class="name">include</span>&gt;</span>*.jar<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;/<span class="name">includes</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;<span class="name">directory</span>&gt;</span>$&#123;project.build.directory&#125;<span class="tag">&lt;/<span class="name">directory</span>&gt;</span></span><br><span class="line">                                    <span class="tag">&lt;<span class="name">outputDirectory</span>&gt;</span>/<span class="tag">&lt;/<span class="name">outputDirectory</span>&gt;</span></span><br><span class="line">                                <span class="tag">&lt;/<span class="name">fileSet</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;/<span class="name">fileSets</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;/<span class="name">inline</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">assembly</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">run</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">ports</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">port</span>&gt;</span>$&#123;container.port&#125;:5005<span class="tag">&lt;/<span class="name">port</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">ports</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">cmd</span>&gt;</span>$&#123;container.cmd&#125;<span class="tag">&lt;/<span class="name">cmd</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">run</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">image</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">images</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>我们使用了两个插件，第一个插件将程序和其所有的依赖打进jar包，并指定mainclass,第二个插件就是docker插件了。我们将一些配置提取到property当中，使得这些配置具体一定的通用性<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dockerHost</span>&gt;</span>http://localhost:2375<span class="tag">&lt;/<span class="name">dockerHost</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">mainclass</span>&gt;</span>nd.com.sdp.Program<span class="tag">&lt;/<span class="name">mainclass</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">image.from</span>&gt;</span>openjdk:7-jre<span class="tag">&lt;/<span class="name">image.from</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">image.name</span>&gt;</span>$&#123;project.name&#125;<span class="tag">&lt;/<span class="name">image.name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">container.targetDir</span>&gt;</span>/maven<span class="tag">&lt;/<span class="name">container.targetDir</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">container.port</span>&gt;</span>5005<span class="tag">&lt;/<span class="name">container.port</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">container.cmd</span>&gt;</span>java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005 -jar /maven/ROOT.jar<span class="tag">&lt;/<span class="name">container.cmd</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>dockerHost代表DockerDaemon进程所在的主机和其所监听的端口，你如果拥有一台装有Docker的远端机器，这里只要修改主机名和端口号就可以了。</li>
+<li>mainClass指定程序main函数所在的类</li>
+<li>image.from指定要使用的原始镜像，我们使用官方openjdk:7-jre(这里可以修改成任何你喜欢的镜像，Docker灵活性的体现)</li>
+<li>image.name指定我们构建出来的镜像名称，我们简单的使用项目名称代替</li>
+<li>container.targetDir指定了我们编译后的jar包要放到镜像中的什么位置</li>
+<li>container.port指定了容器运行之后要暴露的调试端口，我们的ide就是通过此端口与其进行通信的</li>
+<li>container.cmd容器启动时所运行的命令，这里指定程序以调试的方式启动</li>
+</ul>
+<p>我们甚至可以将这些配置作为pom项目install到机器上让其它项目继承，如果你有一台nexus服务器，还可以将其deploy到上面去让团队其它成员使用^_^。<br><a href="https://dmp.fabric8.io/#introduction" target="_blank" rel="noopener">附上fabric-maven-docker-plugin操作手册</a></p>
+<h1 id="调试"><a href="#调试" class="headerlink" title="调试"></a>调试</h1><p>&#160; &#160; &#160; &#160;配置好pom文件，下面编写一段代码来试一下Linux调试：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Program</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        Runtime runtime = Runtime.getRuntime();</span><br><span class="line">        Process process = runtime.exec(<span class="keyword">new</span> String[]&#123;<span class="string">"/bin/bash"</span>, <span class="string">"-c"</span>, <span class="string">"ls -l /"</span>&#125;);</span><br><span class="line">        process.waitFor();</span><br><span class="line">        BufferedReader reader = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(process.getInputStream()));</span><br><span class="line">        String line = <span class="keyword">null</span>;</span><br><span class="line">        StringBuilder sb = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">        <span class="keyword">while</span> ((line = reader.readLine()) != <span class="keyword">null</span>) &#123;</span><br><span class="line">            sb.append(line + <span class="string">"\n"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(sb.toString());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>笔者使用的是Intellij Idea，Eclipse的使用大同小异。首先要点击右上角的Edit Configurations：<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/docker-debug.png" alt="Edit Configurations"><br>在弹出界面的左上角点击+号，选择Remote：<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/docker-debug2.png" alt="Remote"><br>在配置界面中确保Host和Port和我们刚才在Docker插件中配置的值一致：<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/docker-debug3.png" alt="configuration"><br>最关键的一步是添加maven goal,点击+号，在弹出框中输入clean package docker:build docker:start<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/docker-debug4.png" alt="maven goal"><br>这一步的意思是编译打包，然后build Docker镜像，最后创建并运行容器，这么多步骤在一个maven命中完成，虽然java那么烂，但好歹有个maven看得过去^_^。<br>最后使用Shift+F9调试运行程序，可以看到断点命中，整个过程和本地调试体验一样:<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/docker-debug5.png" alt="break point"></p>
+<p>(全文完)</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/02/20/java中的随机数/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          java中的随机数
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/12/15/浅谈java中List接口/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">浅谈java中List接口</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">分享到：</span>
+		<a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<a class="jiathis_button_tumblr"></a>
+		<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
+
+
+
+<div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="maven+docker调试java应用程序" data-title="maven和docker调试java应用程序" data-url="http://yoursite.com/2016/12/31/maven+docker调试java应用程序/"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"true"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2018 Dockerfun
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: true,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+<script src="http://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  </div>
+</body>
+</html>
