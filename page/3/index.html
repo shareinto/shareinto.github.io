@@ -110,7 +110,7 @@
 				
 				<section class="switch-part switch-part2">
 					<div class="widget tagcloud" id="js-tagcloud">
-						<a href="/tags/algorithm/" style="font-size: 10px;">algorithm</a> <a href="/tags/centos/" style="font-size: 14px;">centos</a> <a href="/tags/cpu/" style="font-size: 10px;">cpu</a> <a href="/tags/docker/" style="font-size: 18px;">docker</a> <a href="/tags/docker-compose/" style="font-size: 10px;">docker-compose</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/git-flow/" style="font-size: 10px;">git-flow</a> <a href="/tags/go/" style="font-size: 10px;">go</a> <a href="/tags/ios/" style="font-size: 10px;">ios</a> <a href="/tags/java/" style="font-size: 14px;">java</a> <a href="/tags/kernel/" style="font-size: 12px;">kernel</a> <a href="/tags/kubernetes/" style="font-size: 14px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 20px;">linux</a> <a href="/tags/performance/" style="font-size: 10px;">performance</a> <a href="/tags/thread/" style="font-size: 10px;">thread</a> <a href="/tags/tool/" style="font-size: 10px;">tool</a> <a href="/tags/操作系统/" style="font-size: 16px;">操作系统</a> <a href="/tags/效率/" style="font-size: 10px;">效率</a>
+						<a href="/tags/algorithm/" style="font-size: 10px;">algorithm</a> <a href="/tags/centos/" style="font-size: 16px;">centos</a> <a href="/tags/cpu/" style="font-size: 10px;">cpu</a> <a href="/tags/docker/" style="font-size: 18px;">docker</a> <a href="/tags/docker-compose/" style="font-size: 10px;">docker-compose</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/git-flow/" style="font-size: 10px;">git-flow</a> <a href="/tags/go/" style="font-size: 10px;">go</a> <a href="/tags/ios/" style="font-size: 10px;">ios</a> <a href="/tags/java/" style="font-size: 14px;">java</a> <a href="/tags/kernel/" style="font-size: 12px;">kernel</a> <a href="/tags/kubernetes/" style="font-size: 14px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 20px;">linux</a> <a href="/tags/performance/" style="font-size: 10px;">performance</a> <a href="/tags/thread/" style="font-size: 10px;">thread</a> <a href="/tags/tool/" style="font-size: 10px;">tool</a> <a href="/tags/操作系统/" style="font-size: 16px;">操作系统</a> <a href="/tags/效率/" style="font-size: 10px;">效率</a>
 					</div>
 				</section>
 				
@@ -189,6 +189,71 @@
 	</div>
 </nav>
       <div class="body-wrap">
+  
+    <article id="post-centos6-5-docker-install" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/09/11/centos6-5-docker-install/" class="article-date">
+  	<time datetime="2015-09-11T09:53:13.000Z" itemprop="datePublished">2015-09-11</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/09/11/centos6-5-docker-install/">centos6.5上安装docker环境</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h2><p>docker容器最早受到RHEL完善的支持是从最近的CentOS 7.0开始的，官方说明是只能运行于64位架构平台，内核版本为2.6.32-431及以上（建议升级到3.10.x,否则低版本会出现各种各样莫名的问题），升级内核请参考<a href="http://shareinto.github.io/2015/09/11/centos6-5-kernel-update/" target="_blank" rel="noopener">centos6.5内核升级</a></p>
+<h2 id="1-禁用selinux"><a href="#1-禁用selinux" class="headerlink" title="1. 禁用selinux"></a>1. 禁用selinux</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ getenforce</span><br><span class="line">Enforcing</span><br><span class="line"></span><br><span class="line">$ setenforce 0</span><br><span class="line"></span><br><span class="line">$ vi /etc/selinux/config</span><br><span class="line"></span><br><span class="line">SELINUX=disabled</span><br></pre></td></tr></table></figure>
+<h2 id="2-安装-Fedora-EPEL"><a href="#2-安装-Fedora-EPEL" class="headerlink" title="2. 安装 Fedora EPEL"></a>2. 安装 Fedora EPEL</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum -y install http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm</span><br></pre></td></tr></table></figure>
+<h2 id="3-安装-docker-io"><a href="#3-安装-docker-io" class="headerlink" title="3. 安装 docker-io"></a>3. 安装 docker-io</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ yum install docker-io -y</span><br><span class="line"></span><br><span class="line">Dependencies Resolved</span><br><span class="line"></span><br><span class="line">===========================================================================================</span><br><span class="line"> Package                        Arch               Version          Repository     Size</span><br><span class="line">Installing:</span><br><span class="line"> docker-io                      x86_64         1.1.2-1.el6          epel          4.5 M</span><br><span class="line">Installing <span class="keyword">for</span> dependencies:</span><br><span class="line"> lua-alt-getopt                 noarch         0.7.0-1.el6          epel          6.9 k</span><br><span class="line"> lua-filesystem                 x86_64         1.4.2-1.el6          epel           24 k</span><br><span class="line"> lua-lxc                        x86_64         1.0.6-1.el6          epel           15 k</span><br><span class="line"> lxc                            x86_64         1.0.6-1.el6          epel          120 k</span><br><span class="line"> lxc-libs                       x86_64         1.0.6-1.el6          epel          248 k</span><br><span class="line">===========================================================================================</span><br><span class="line">Install       6 Package(s)</span><br></pre></td></tr></table></figure>
+<h2 id="4-安装device-mapper相关包"><a href="#4-安装device-mapper相关包" class="headerlink" title="4. 安装device-mapper相关包"></a>4. 安装device-mapper相关包</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ yum install http://mirror.centos.org/centos/6/os/x86_64/Packages/device-mapper-1.02.95-2.el6.x86_64.rpm </span><br><span class="line">http://mirror.centos.org/centos/6/os/x86_64/Packages/device-mapper-libs-1.02.95-2.el6.x86_64.rpm </span><br><span class="line">http://mirror.centos.org/centos/6/os/x86_64/Packages/device-mapper-event-1.02.95-2.el6.x86_64.rpm </span><br><span class="line">http://mirror.centos.org/centos/6/os/x86_64/Packages/device-mapper-event-libs-1.02.95-2.el6.x86_64.rpm</span><br></pre></td></tr></table></figure>
+<h2 id="5-安装docker进程查看工具"><a href="#5-安装docker进程查看工具" class="headerlink" title="5. 安装docker进程查看工具"></a>5. 安装docker进程查看工具</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ yum install util-linux -y</span><br><span class="line">$ wget --no-check-certificate -P ~ https://github.com/yeasy/docker_practice/raw/master/_local/.bashrc_docker;</span><br><span class="line">$ <span class="built_in">echo</span> <span class="string">"[ -f ~/.bashrc_docker ] &amp;&amp; . ~/.bashrc_docker"</span> &gt;&gt; ~/.bashrc; <span class="built_in">source</span> ~/.bashrc</span><br></pre></td></tr></table></figure>
+<h2 id="6-安装完成-启动docker服务"><a href="#6-安装完成-启动docker服务" class="headerlink" title="6. 安装完成,启动docker服务"></a>6. 安装完成,启动docker服务</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ service docker start</span><br></pre></td></tr></table></figure>
+<h2 id="7-续-》docker-compose安装"><a href="#7-续-》docker-compose安装" class="headerlink" title="7. 续==》docker-compose安装"></a>7. 续==》docker-compose安装</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ curl -L https://github.com/docker/compose/releases/download/1.2.0/docker-compose-`uname -s`-`uname -m` &gt; /usr/<span class="built_in">local</span>/bin/docker-compose</span><br><span class="line">$ chmod +x /usr/<span class="built_in">local</span>/bin/docker-compose</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/centos/">centos</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/">linux</a></li></ul>
+	</div>
+
+      
+	<div class="article-category tagcloud">
+	<a class="article-category-link" href="/categories/docker/">docker</a>
+	</div>
+
+
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
   
     <article id="post-centos6-5-kernel-update" class="article article-type-post" itemscope itemprop="blogPost">
   

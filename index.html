@@ -110,7 +110,7 @@
 				
 				<section class="switch-part switch-part2">
 					<div class="widget tagcloud" id="js-tagcloud">
-						<a href="/tags/algorithm/" style="font-size: 10px;">algorithm</a> <a href="/tags/centos/" style="font-size: 14px;">centos</a> <a href="/tags/cpu/" style="font-size: 10px;">cpu</a> <a href="/tags/docker/" style="font-size: 18px;">docker</a> <a href="/tags/docker-compose/" style="font-size: 10px;">docker-compose</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/git-flow/" style="font-size: 10px;">git-flow</a> <a href="/tags/go/" style="font-size: 10px;">go</a> <a href="/tags/ios/" style="font-size: 10px;">ios</a> <a href="/tags/java/" style="font-size: 14px;">java</a> <a href="/tags/kernel/" style="font-size: 12px;">kernel</a> <a href="/tags/kubernetes/" style="font-size: 14px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 20px;">linux</a> <a href="/tags/performance/" style="font-size: 10px;">performance</a> <a href="/tags/thread/" style="font-size: 10px;">thread</a> <a href="/tags/tool/" style="font-size: 10px;">tool</a> <a href="/tags/操作系统/" style="font-size: 16px;">操作系统</a> <a href="/tags/效率/" style="font-size: 10px;">效率</a>
+						<a href="/tags/algorithm/" style="font-size: 10px;">algorithm</a> <a href="/tags/centos/" style="font-size: 16px;">centos</a> <a href="/tags/cpu/" style="font-size: 10px;">cpu</a> <a href="/tags/docker/" style="font-size: 18px;">docker</a> <a href="/tags/docker-compose/" style="font-size: 10px;">docker-compose</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/git-flow/" style="font-size: 10px;">git-flow</a> <a href="/tags/go/" style="font-size: 10px;">go</a> <a href="/tags/ios/" style="font-size: 10px;">ios</a> <a href="/tags/java/" style="font-size: 14px;">java</a> <a href="/tags/kernel/" style="font-size: 12px;">kernel</a> <a href="/tags/kubernetes/" style="font-size: 14px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 20px;">linux</a> <a href="/tags/performance/" style="font-size: 10px;">performance</a> <a href="/tags/thread/" style="font-size: 10px;">thread</a> <a href="/tags/tool/" style="font-size: 10px;">tool</a> <a href="/tags/操作系统/" style="font-size: 16px;">操作系统</a> <a href="/tags/效率/" style="font-size: 10px;">效率</a>
 					</div>
 				</section>
 				
@@ -189,6 +189,72 @@
 	</div>
 </nav>
       <div class="body-wrap">
+  
+    <article id="post-centos7-docker-install" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/09/17/centos7-docker-install/" class="article-date">
+  	<time datetime="2018-09-17T09:53:13.000Z" itemprop="datePublished">2018-09-17</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/09/17/centos7-docker-install/">centos7上安装docker环境</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="准备-删除旧版本"><a href="#准备-删除旧版本" class="headerlink" title="准备:删除旧版本"></a>准备:删除旧版本</h2><figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ sudo yum remove docker <span class="string">\</span></span><br><span class="line">                  docker-client <span class="string">\</span></span><br><span class="line">                  docker-client-latest <span class="string">\</span></span><br><span class="line">                  docker-common <span class="string">\</span></span><br><span class="line">                  docker-latest <span class="string">\</span></span><br><span class="line">                  docker-latest-logrotate <span class="string">\</span></span><br><span class="line">                  docker-logrotate <span class="string">\</span></span><br><span class="line">                  docker-selinux <span class="string">\</span></span><br><span class="line">                  docker-engine-selinux <span class="string">\</span></span><br><span class="line">                  docker-engine</span><br></pre></td></tr></table></figure>
+<h2 id="1-安装仓库"><a href="#1-安装仓库" class="headerlink" title="1. 安装仓库"></a>1. 安装仓库</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo yum install -y yum-utils</span><br></pre></td></tr></table></figure>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo yum-config-manager \</span><br><span class="line">    --<span class="built_in">add</span>-repo \</span><br><span class="line">    http<span class="variable">s:</span>//download.docker.<span class="keyword">com</span>/linux/centos/docker-<span class="keyword">ce</span>.repo</span><br></pre></td></tr></table></figure>
+<h2 id="2-安装指定版本的Docker-CE"><a href="#2-安装指定版本的Docker-CE" class="headerlink" title="2. 安装指定版本的Docker CE"></a>2. 安装指定版本的Docker CE</h2><h3 id="1-列出版本"><a href="#1-列出版本" class="headerlink" title="1. 列出版本"></a>1. 列出版本</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum list docker-ce --showduplicates | sort -r</span><br></pre></td></tr></table></figure>
+<h3 id="2-安装指定版本"><a href="#2-安装指定版本" class="headerlink" title="2.安装指定版本"></a>2.安装指定版本</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo yum <span class="keyword">install</span> docker-ce-&lt;<span class="keyword">VERSION</span> <span class="keyword">STRING</span>&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="3-启动docker"><a href="#3-启动docker" class="headerlink" title="3. 启动docker"></a>3. 启动docker</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo systemctl start docker</span></span><br></pre></td></tr></table></figure>
+<h2 id="续：修改cgroup-driver"><a href="#续：修改cgroup-driver" class="headerlink" title="续：修改cgroup driver:"></a>续：修改cgroup driver:</h2><p>在 /usr/lib/systemd/system/docker.service 中添加以下启动项<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">ExecStart</span>=/usr/bin/dockerd \</span><br><span class="line">          --exec-opt native.<span class="attribute">cgroupdriver</span>=systemd</span><br></pre></td></tr></table></figure></p>
+<p>重启docker<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> systemctl daemon-reload</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> systemctl restart docker</span></span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/centos/">centos</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/">linux</a></li></ul>
+	</div>
+
+      
+	<div class="article-category tagcloud">
+	<a class="article-category-link" href="/categories/docker/">docker</a>
+	</div>
+
+
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
   
     <article id="post-centos7-kernel-update" class="article article-type-post" itemscope itemprop="blogPost">
   
@@ -1007,86 +1073,6 @@
       
 	<div class="article-category tagcloud">
 	<a class="article-category-link" href="/categories/docker/">docker</a>
-	</div>
-
-
-      
-      <div class="clearfix"></div>
-    </div>
-    
-  </div>
-  
-</article>
-
-
-
-
-
-
-
-  
-    <article id="post-浅谈java中List接口" class="article article-type-post" itemscope itemprop="blogPost">
-  
-    <div class="article-meta">
-      <a href="/2016/12/15/浅谈java中List接口/" class="article-date">
-  	<time datetime="2016-12-15T06:18:11.000Z" itemprop="datePublished">2016-12-15</time>
-</a>
-    </div>
-  
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/12/15/浅谈java中List接口/">浅谈java中List接口</a>
-    </h1>
-  
-
-      </header>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="List接口的定义"><a href="#List接口的定义" class="headerlink" title="List接口的定义"></a>List接口的定义</h1><p>List接口在java中算是使用频率相当高的一个接口，我们先来看一下它的定义：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">List</span>&lt;<span class="title">E</span>&gt; <span class="keyword">extends</span> <span class="title">Collection</span>&lt;<span class="title">E</span>&gt;</span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">add</span><span class="params">(E e)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">size</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function">E <span class="title">get</span><span class="params">(<span class="keyword">int</span> index)</span></span>;</span><br><span class="line">    <span class="function">Iterator&lt;E&gt; <span class="title">iterator</span><span class="params">()</span></span>;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>这里只列出一些比较重要的方法，相比其它语言里面的类似的接口，可以说是大同小异，它的设计并没有什么问题。</p>
-<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><p>在jdk中，关于这个接口有三个实现，分别是ArrayList,LinkedList和Vector,我们分别来看一下它们的定义：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ArrayList</span>&lt;<span class="title">E</span>&gt; <span class="keyword">extends</span> <span class="title">AbstractList</span>&lt;<span class="title">E</span>&gt; <span class="keyword">implements</span> <span class="title">List</span>&lt;<span class="title">E</span>&gt;, <span class="title">RandomAccess</span>, <span class="title">Cloneable</span>, <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span></span></span><br></pre></td></tr></table></figure></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LinkedList</span>&lt;<span class="title">E</span>&gt; <span class="keyword">extends</span> <span class="title">AbstractSequentialList</span>&lt;<span class="title">E</span>&gt; <span class="keyword">implements</span> <span class="title">List</span>&lt;<span class="title">E</span>&gt;, <span class="title">Deque</span>&lt;<span class="title">E</span>&gt;, <span class="title">Cloneable</span>, <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span></span></span><br></pre></td></tr></table></figure>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Vector</span>&lt;<span class="title">E</span>&gt; <span class="keyword">extends</span> <span class="title">AbstractList</span>&lt;<span class="title">E</span>&gt; <span class="keyword">implements</span> <span class="title">List</span>&lt;<span class="title">E</span>&gt;, <span class="title">RandomAccess</span>, <span class="title">Cloneable</span>, <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span></span></span><br></pre></td></tr></table></figure>
-<p>既然实现了List接口，那我们便可以用List指针来接收这三个类的实例。例如：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">List list = <span class="keyword">new</span> ArrayList();</span><br><span class="line">List list = <span class="keyword">new</span> LinkedList();</span><br><span class="line">List list = <span class="keyword">new</span> Vector();</span><br></pre></td></tr></table></figure></p>
-<h1 id="迭代"><a href="#迭代" class="headerlink" title="迭代"></a>迭代</h1><p>在平常使用List接口的过程中，我们经常需要遍历List里面的元素。<br>于是我们可以这样写代码：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (Interator inter = list.Interator();iter.hasNext();)&#123;</span><br><span class="line">     Object obj = inter.next();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>我们甚至还可以这样：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (Object obj : list) &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>为什么可以这样？这是因为AbstractList实现了Iterable接口，而这里仅仅只是一种语法糖而已，实际代码编译后还是会被转成第一种写法。<br>（大家可以想想这里为什么要有一个Iterable接口，而不直接实现Iterator接口）</p>
-<p>文章写到这里似乎并没有什么价值，但是我们发现在List接口中存在：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">E <span class="title">get</span><span class="params">(<span class="keyword">int</span> index)</span></span>;</span><br></pre></td></tr></table></figure></p>
-<p>这样一个方法，我们似乎可以改改上面遍历的方式：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; list.size(); i++) &#123;</span><br><span class="line">     Object obj = list.get(i);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>我相信大家在日常编码中会经常使用到这种方式。</p>
-<h1 id="随机访问"><a href="#随机访问" class="headerlink" title="随机访问"></a>随机访问</h1><p>&#160; &#160; &#160; &#160;这种通过下标访问的方式，我们把它称之为RandomAccess。我们知道数组这种数据结构对这种随机访问的天生支持（事实上ArrayList和Vector就是用数组实现的），也就是说它的访问效率是非常高的。<br>现在我们回过头来看JDK中对List的三种实现，我们会发现其中的ArrayList和Vector竟然实现了一个叫RandomAccess接口，查看它的定义：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">RandomAccess</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>竟然是一个空接口？好吧这种接口的作用实际上是一种标记接口，对于它的使用，往往需要配合instanceof这种<a href="http://baike.baidu.com/link?url=c6vVFXT41_awqHe0TVcfrR74uwaprffqcyzQP4qw_o3VQQ0L2OSvQgzxWGR_a6_argI5qoOg2Pe5P_cv2X0YEq" target="_blank" rel="noopener">RTTI</a>的方式。可以说并不是一种很理想的方式。</p>
-<h1 id="性能"><a href="#性能" class="headerlink" title="性能"></a>性能</h1><p>我们可以写一个小程序来测试一下使用迭代器和使用RandomAccess的性能差异<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">travelwithoutIterator</span><span class="params">(List list, <span class="keyword">int</span> count)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">long</span> startTime;</span><br><span class="line">    <span class="keyword">long</span> endTime;</span><br><span class="line">    startTime = System.currentTimeMillis();</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> a = <span class="number">1</span>; a &lt;= count; a++) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; list.size(); i++) &#123;</span><br><span class="line">            list.get(i);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    endTime = System.currentTimeMillis();</span><br><span class="line">    <span class="keyword">long</span> interval = endTime - startTime;</span><br><span class="line">    System.out.println(<span class="string">"不使用迭代器的间隔时间："</span> + interval);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">travelwithIterator</span><span class="params">(List list, <span class="keyword">int</span> count)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">long</span> startTime;</span><br><span class="line">    <span class="keyword">long</span> endTime;</span><br><span class="line">    startTime = System.currentTimeMillis();</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> a = <span class="number">1</span>; a &lt;= count; a++) &#123;</span><br><span class="line">        <span class="keyword">for</span> (Iterator iter = list.iterator(); iter.hasNext(); ) &#123;</span><br><span class="line">            iter.next();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    endTime = System.currentTimeMillis();</span><br><span class="line">    <span class="keyword">long</span> interval = endTime - startTime;</span><br><span class="line">    System.out.println(<span class="string">"使用迭代器的间隔时间："</span> + interval);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">addObject</span><span class="params">(List list, <span class="keyword">int</span> n)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> m = <span class="number">1</span>; m &lt;= n; m++) &#123;</span><br><span class="line">        list.add(<span class="string">""</span> + m);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>在main中：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> number = <span class="number">100000</span>;</span><br><span class="line"><span class="keyword">int</span> count = <span class="number">100</span>;</span><br><span class="line">List list = <span class="keyword">new</span> ArrayList();</span><br><span class="line">System.out.println(<span class="string">"遍历ArrayList："</span>);</span><br><span class="line">addObject(list, number);</span><br><span class="line">travelwithoutIterator(list, count);</span><br><span class="line">travelwithIterator(list, count);</span><br></pre></td></tr></table></figure></p>
-<p>结果是:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">遍历ArrayList：</span><br><span class="line">不使用迭代器的间隔时间：5</span><br><span class="line">使用迭代器的间隔时间：12</span><br></pre></td></tr></table></figure></p>
-<p>我们对于ArrayList，使用RandomAccess的效率要比使用迭代器高不少，这对于一些对于性能要求比较苛刻的程序来说，可能会是一个优化的点。</p>
-<p>但是我们现在换成LinkedList来试一试：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> number = <span class="number">100000</span>;</span><br><span class="line"><span class="keyword">int</span> count = <span class="number">100</span>;</span><br><span class="line">List list = <span class="keyword">new</span> LinkedList();</span><br><span class="line">System.out.println(<span class="string">"遍历LinkedList："</span>);</span><br><span class="line">addObject(list, number);</span><br><span class="line">travelwithoutIterator(list, count);</span><br><span class="line">travelwithIterator(list, count);</span><br></pre></td></tr></table></figure></p>
-<p>结果是：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">遍历LinkedList：</span><br><span class="line">不使用迭代器的间隔时间：1043247</span><br><span class="line">使用迭代器的间隔时间：139</span><br></pre></td></tr></table></figure></p>
-<p>对于List的使用者来说，或者说正在编写一个框架的人，我们经常不知道List指针会接到什么样的一个具体实例，于是乎，我们只能以这种贴膏药的方式来修补我们的程序：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (list <span class="keyword">instanceof</span> RandomAccess) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = list.size(); i &lt; list.size(); i++) &#123;</span><br><span class="line">        Object obj = list.get(i);</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (Object obj : list) &#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<h1 id="设计的问题"><a href="#设计的问题" class="headerlink" title="设计的问题"></a>设计的问题</h1><p>&#160; &#160; &#160; &#160;到这里，我们可以看出LinkedList明显是不应该实现List这么大的一个接口了，或者说早期的jdk设计人员并没有考虑到这样的性能问题。我们再回过头来看RandomAccess接口，jdk设计人员似乎也是意识到了这一点，才搞出了这么一个东西。<br>那会为什么不让LinkedList直接去掉List接口呢？（在C#中LinkedList并没有实现IList接口）我想这应该是Java设计人员始终坚持的兼容性原则，这跟Jvm始终不愿意引入泛型是一个道理。</p>
-
-      
-    </div>
-    
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li></ul>
-	</div>
-
-      
-	<div class="article-category tagcloud">
-	<a class="article-category-link" href="/categories/java/">java</a>
 	</div>
 
 
