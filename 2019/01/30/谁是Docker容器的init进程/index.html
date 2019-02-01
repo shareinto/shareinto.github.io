@@ -14,7 +14,7 @@
 <meta property="og:description" content="什么是PID 1 在Linux操作系统中，当内核初始化完毕之后，会启动一个init进程，这个进程是整个操作系统的第一个用户进程，所以它的进程ID为1，也就是我们常说的PID1进程。在这之后，所有的用户态进程都是该进程的后代进程，由此我们可以看出，整个系统的用户进程，是一棵由init进程作为根的进程树。   init进程有一个非常厉害的地方，就是SIGKILL信号对它无效。很显然，如果我们将一棵树的">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/5e0ea99909d34a2df356ba6c6c426f8c">
-<meta property="og:updated_time" content="2019-02-01T10:46:58.532Z">
+<meta property="og:updated_time" content="2019-02-01T10:53:01.193Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="谁是Docker容器的init(1)进程">
 <meta name="twitter:description" content="什么是PID 1 在Linux操作系统中，当内核初始化完毕之后，会启动一个init进程，这个进程是整个操作系统的第一个用户进程，所以它的进程ID为1，也就是我们常说的PID1进程。在这之后，所有的用户态进程都是该进程的后代进程，由此我们可以看出，整个系统的用户进程，是一棵由init进程作为根的进程树。   init进程有一个非常厉害的地方，就是SIGKILL信号对它无效。很显然，如果我们将一棵树的">
@@ -330,7 +330,7 @@
 </ol>
 </blockquote>
 <blockquote>
-<p>很显然，旧版本的Docker在容器内所产生的孤儿进程，会被进程号为1（也就是entrypoint进程）所接管，而我们知道，该进程一般是一个普通的应用程序，一般不会特意去实现对孤儿进程的处理，所以，在使用早期版本的Docker时，我们会发现操作系统会经常出现僵尸进程。所以，为了你的系统稳定，早点升级你的内核的Docker的版本吧。</p>
+<p>很显然，旧版本的Docker在容器内所产生的孤儿进程，会被进程号为1（也就是entrypoint进程）所接管，而我们知道，该进程一般是一个普通的应用程序，一般不会特意去实现对孤儿进程的处理，所以，在使用早期版本的Docker时，我们会发现操作系统会经常出现僵尸进程。所以，为了你的系统稳定，早点升级你的内核和Docker的版本吧。</p>
 </blockquote>
 
       

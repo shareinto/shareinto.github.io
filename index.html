@@ -314,7 +314,7 @@
 </ol>
 </blockquote>
 <blockquote>
-<p>很显然，旧版本的Docker在容器内所产生的孤儿进程，会被进程号为1（也就是entrypoint进程）所接管，而我们知道，该进程一般是一个普通的应用程序，一般不会特意去实现对孤儿进程的处理，所以，在使用早期版本的Docker时，我们会发现操作系统会经常出现僵尸进程。所以，为了你的系统稳定，早点升级你的内核的Docker的版本吧。</p>
+<p>很显然，旧版本的Docker在容器内所产生的孤儿进程，会被进程号为1（也就是entrypoint进程）所接管，而我们知道，该进程一般是一个普通的应用程序，一般不会特意去实现对孤儿进程的处理，所以，在使用早期版本的Docker时，我们会发现操作系统会经常出现僵尸进程。所以，为了你的系统稳定，早点升级你的内核和Docker的版本吧。</p>
 </blockquote>
 
       
@@ -872,6 +872,92 @@
 
 
   
+    <article id="post-KubernetesIngress（1）" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2017/04/13/KubernetesIngress（1）/" class="article-date">
+  	<time datetime="2017-04-13T12:48:38.000Z" itemprop="datePublished">2017-04-13</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/04/13/KubernetesIngress（1）/">Kubernetes Ingress（1）简介</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="为什么选择Ingress"><a href="#为什么选择Ingress" class="headerlink" title="为什么选择Ingress"></a>为什么选择Ingress</h2><p>kubernets的service和pod在集群内部有着集群网络统一管理和分配的ip地址，但是这些ip地址只有在集群内部可见，任何集群外部的节点都无法直接访问内部节点。显然，我们必须通过其它的渠道来访问。</p>
+<p>目前，kubernetes提供了三种访问的方式：</p>
+<ul>
+<li>NodePort</li>
+<li>LoadBalance</li>
+<li>Ingress</li>
+</ul>
+<p>其中，NodePort对于主机端口资原的要求非常高，无法应用于大规模的企业私有云，而LoadBalance方式只有在像GCE、Asure等等这些云服务提供商上面才能使用。因此，对于私有云可以采用的最佳入口方式非Ingress莫属。</p>
+<h2 id="什么是Ingress"><a href="#什么是Ingress" class="headerlink" title="什么是Ingress"></a>什么是Ingress</h2><p>Ingress是一系列允许入站链接到达集群内部服务的规则的集合。<br>未使用Ingress，外部网络无法到达内部服务<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">  internet</span><br><span class="line">      |</span><br><span class="line">------------</span><br><span class="line">[ Services ]</span><br></pre></td></tr></table></figure></p>
+<p>Ingress的加入则使外部网络有了访问内部服务的途径<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> internet</span><br><span class="line">     |</span><br><span class="line">[ Ingress ]</span><br><span class="line">--|-----|--</span><br><span class="line">[ Services ]</span><br></pre></td></tr></table></figure></p>
+<p>Ingress可以为服务配置一系列的访问域名，负载均衡策略，SSL等等。</p>
+<h2 id="Ingress-Resource"><a href="#Ingress-Resource" class="headerlink" title="Ingress Resource"></a>Ingress Resource</h2><p>Ingress和Pod、Servce等等类似，被定义为kubernetes的一种资源<br>它的一个简单的示例如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: extensions/v1beta1</span><br><span class="line">kind: Ingress</span><br><span class="line">metadata:</span><br><span class="line">  name: test-ingress</span><br><span class="line">spec:</span><br><span class="line">  rules:</span><br><span class="line">  - host: foo.bar.com</span><br><span class="line">  - http:</span><br><span class="line">      paths:</span><br><span class="line">      - path: /testpath</span><br><span class="line">        backend:</span><br><span class="line">          serviceName: test</span><br><span class="line">          servicePort: 80</span><br></pre></td></tr></table></figure></p>
+<p>这段Ingress的描述的意思是：将host为foo.bar.com且路径为/testpath的访问引导到test:80这个服务上面。</p>
+<h2 id="Ingress-Controller"><a href="#Ingress-Controller" class="headerlink" title="Ingress Controller"></a>Ingress Controller</h2><p>本质上说Ingress只是存储在etcd上面一些数据，我们可以能过kubernetes的apiserver添加删除和修改ingress资源。那么真正让整个Ingress运转起来的一个重要组件是Ingress Controller。<br>然而，这个Controller并不像其它Controller一样作为kubernetes的核心组件在master启动的时候一起启动起来，它实际上是kubernetes的一个扩展，我们必须选择一个适合自己的Ingress Controller，或者自己去实现一个。</p>
+<p>对于Ingress Controller官方的定义是这样子的：</p>
+<blockquote>
+<p>An Ingress Controller is a daemon, deployed as a Kubernetes Pod, that watches the apiserver’s /ingresses endpoint for updates to the Ingress resource. Its job is to satisfy requests for ingress.</p>
+</blockquote>
+<p>Ingress Controller作为一个守户进程，通过监听apiserver的ingresses资源变化，并且根据其指定的规则建立起外部网络访问内部服务的通道。对于官方描述的 deployed as a Kubernetes Pod，实际上是没办法运用到生产环境当中去的，这个我们在后面会提到这个问题，并且会有相应的解决方案。</p>
+<h2 id="Ingress-Controller的架构"><a href="#Ingress-Controller的架构" class="headerlink" title="Ingress Controller的架构"></a>Ingress Controller的架构</h2><p><img src="http://7xlovv.com1.z0.glb.clouddn.com/ingress-controller.png" alt="ingress-controller"></p>
+<p>上图展示了一个nginx ingress controller的部署架构图，ingress controller通过轮询监听apiserver的方式来获取ingress资源的变化，将ingress资源存储到本地缓存，并通知nginx进行相应的配置修改的加载。<br>ingress controller监控了ingress、service、endpoint、secret、node、configmap一系列资源，一旦资源发生了变化（包括增加、删除和修改），会立即通知backend，例如nginx等。<br>为了减少对apiserver的请求次数，nginx controllder会将每次请求在本地进行缓存，该缓存import了kubernetes提供的包”k8s.io/kubernetes/pkg/client/cache”。</p>
+<h2 id="Ingress-Controller的漂移问题"><a href="#Ingress-Controller的漂移问题" class="headerlink" title="Ingress Controller的漂移问题"></a>Ingress Controller的漂移问题</h2><p>在官方定义的ingress controller，将它部署在kubernetes内部，以pod的方式存在kubernetes集群内部。既然是pod，那么就会存在漂移的问题，而作为外部网络的访问入口，我们是不允许这样的情况发生的。其中一种解决方案是通过VIP和服务发现来解决，但这无疑增加了整个系统的复杂度。<br>其实要解决漂移的问题很简单，我们只要将其部署在kubernetes集群外部，那么它就不受kubernetes的控制，自然而然就不会漂移了。<br>细心的读者可能会发现部署在外部的话，那么集群内外的网络通讯又会成为一个问题。笔者的集群环境的网络覆盖方案选择的是flannel，在每一个node上面初始化kubernetes环境的时候，都会一并装上flannel。<br>关于flannel的原理，这里有一篇文章分析得很详细<a href="http://dockone.io/article/618" target="_blank" rel="noopener">DockOne技术分享（十八）：一篇文章带你了解Flannel</a></p>
+<p>这是flannel的原理图：<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/flannel.png" alt="flannel"></p>
+<p>通过该图我们可以看到通过docker0和flannel0这两块网卡打通了宿主机和集群内部的一个网络通道。</p>
+<p>笔记在自己的节点上进行了验证<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/flannel-if.png" alt="flannel-if"></p>
+<p>也就是说只要部署在该宿主机上的程序，都可以访问该节点上的任何docker容器，至于其它节点的docker容器，通过flanneld到节点的物理网卡，在flanned的时候数据包会被另外一种协议包装（如UDP、VxLAN、AWS VPC和GCE路由）成packet，该包到了另外一个节点的物理网卡再交由flanned进行解包，之后再通过虚拟的flannel和docker两块网卡路由到容器内部。</p>
+<p>因此，我们可以以docker容器和方式或者直接以宿主机进程的方式部署我们的ingress controller。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>至此我们简单的介绍了kubernetes ingress 的整体结构的设计，还有ingress controller的实现机制以及部署问题等，在下一篇文章中我们会通过ingress controller的源码分析，详细讲解它的实现原理。</p>
+
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kubernetes/">kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/">linux</a></li></ul>
+	</div>
+
+      
+	<div class="article-category tagcloud">
+	<a class="article-category-link" href="/categories/kubernetes/">kubernetes</a>
+	</div>
+
+
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+  
     <article id="post-KubernetesIngress（2）" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
@@ -955,92 +1041,6 @@
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ic *GenericController)</span> <span class="title">sync</span><span class="params">(e <span class="keyword">interface</span>&#123;&#125;)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	ic.syncRateLimiter.Accept()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> ic.syncQueue.IsShuttingDown() &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> !ic.controllersInSync() &#123;</span><br><span class="line">		time.Sleep(podStoreSyncedPollPeriod)</span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">"deferring sync till endpoints controller has synced"</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	upstreams, servers := ic.getBackendServers()</span><br><span class="line">	<span class="keyword">var</span> passUpstreams []*ingress.SSLPassthroughBackend</span><br><span class="line">	<span class="keyword">for</span> _, server := <span class="keyword">range</span> servers &#123;</span><br><span class="line">		<span class="keyword">if</span> !server.SSLPassthrough &#123;</span><br><span class="line">			<span class="keyword">continue</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">for</span> _, loc := <span class="keyword">range</span> server.Locations &#123;</span><br><span class="line">			<span class="keyword">if</span> loc.Path != rootLocation &#123;</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			&#125;</span><br><span class="line">			passUpstreams = <span class="built_in">append</span>(passUpstreams, &amp;ingress.SSLPassthroughBackend&#123;</span><br><span class="line">				Backend:  loc.Backend,</span><br><span class="line">				Hostname: server.Hostname,</span><br><span class="line">			&#125;)</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	data, err := ic.cfg.Backend.OnUpdate(ingress.Configuration&#123;</span><br><span class="line">		Backends:            upstreams,</span><br><span class="line">		Servers:             servers,</span><br><span class="line">		TCPEndpoints:        ic.getStreamServices(ic.cfg.TCPConfigMapName, api.ProtocolTCP),</span><br><span class="line">		UDPEndpoints:        ic.getStreamServices(ic.cfg.UDPConfigMapName, api.ProtocolUDP),</span><br><span class="line">		PassthroughBackends: passUpstreams,</span><br><span class="line">	&#125;)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	out, reloaded, err := ic.cfg.Backend.Reload(data)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		incReloadErrorCount()</span><br><span class="line">		glog.Errorf(<span class="string">"unexpected failure restarting the backend: \n%v"</span>, <span class="keyword">string</span>(out))</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> reloaded &#123;</span><br><span class="line">		glog.Infof(<span class="string">"ingress backend successfully reloaded..."</span>)</span><br><span class="line">		incReloadCount()</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>这里将一切资源组织成ingress.Configuration结构传给OnUpdate方法，OnUpdate由各个Ingress Controller实现方实现，生成对应的配置数据（例如nginx的config）以byte切片返回，然后再将这些配置数据传给Reload方法，这个方法同样由第三方实现。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>本文通过分析源码的方式理清了整个Ingress Controller框架的来龙去脉，在下一篇文章中，通过对Nginx Ingress Controller源码分析，来看一下如何实现一个Ingress Controller。</p>
-
-      
-    </div>
-    
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kubernetes/">kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/">linux</a></li></ul>
-	</div>
-
-      
-	<div class="article-category tagcloud">
-	<a class="article-category-link" href="/categories/kubernetes/">kubernetes</a>
-	</div>
-
-
-      
-      <div class="clearfix"></div>
-    </div>
-    
-  </div>
-  
-</article>
-
-
-
-
-
-
-
-  
-    <article id="post-KubernetesIngress（1）" class="article article-type-post" itemscope itemprop="blogPost">
-  
-    <div class="article-meta">
-      <a href="/2017/04/13/KubernetesIngress（1）/" class="article-date">
-  	<time datetime="2017-04-13T12:48:38.000Z" itemprop="datePublished">2017-04-13</time>
-</a>
-    </div>
-  
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/04/13/KubernetesIngress（1）/">Kubernetes Ingress（1）简介</a>
-    </h1>
-  
-
-      </header>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="为什么选择Ingress"><a href="#为什么选择Ingress" class="headerlink" title="为什么选择Ingress"></a>为什么选择Ingress</h2><p>kubernets的service和pod在集群内部有着集群网络统一管理和分配的ip地址，但是这些ip地址只有在集群内部可见，任何集群外部的节点都无法直接访问内部节点。显然，我们必须通过其它的渠道来访问。</p>
-<p>目前，kubernetes提供了三种访问的方式：</p>
-<ul>
-<li>NodePort</li>
-<li>LoadBalance</li>
-<li>Ingress</li>
-</ul>
-<p>其中，NodePort对于主机端口资原的要求非常高，无法应用于大规模的企业私有云，而LoadBalance方式只有在像GCE、Asure等等这些云服务提供商上面才能使用。因此，对于私有云可以采用的最佳入口方式非Ingress莫属。</p>
-<h2 id="什么是Ingress"><a href="#什么是Ingress" class="headerlink" title="什么是Ingress"></a>什么是Ingress</h2><p>Ingress是一系列允许入站链接到达集群内部服务的规则的集合。<br>未使用Ingress，外部网络无法到达内部服务<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">  internet</span><br><span class="line">      |</span><br><span class="line">------------</span><br><span class="line">[ Services ]</span><br></pre></td></tr></table></figure></p>
-<p>Ingress的加入则使外部网络有了访问内部服务的途径<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> internet</span><br><span class="line">     |</span><br><span class="line">[ Ingress ]</span><br><span class="line">--|-----|--</span><br><span class="line">[ Services ]</span><br></pre></td></tr></table></figure></p>
-<p>Ingress可以为服务配置一系列的访问域名，负载均衡策略，SSL等等。</p>
-<h2 id="Ingress-Resource"><a href="#Ingress-Resource" class="headerlink" title="Ingress Resource"></a>Ingress Resource</h2><p>Ingress和Pod、Servce等等类似，被定义为kubernetes的一种资源<br>它的一个简单的示例如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: extensions/v1beta1</span><br><span class="line">kind: Ingress</span><br><span class="line">metadata:</span><br><span class="line">  name: test-ingress</span><br><span class="line">spec:</span><br><span class="line">  rules:</span><br><span class="line">  - host: foo.bar.com</span><br><span class="line">  - http:</span><br><span class="line">      paths:</span><br><span class="line">      - path: /testpath</span><br><span class="line">        backend:</span><br><span class="line">          serviceName: test</span><br><span class="line">          servicePort: 80</span><br></pre></td></tr></table></figure></p>
-<p>这段Ingress的描述的意思是：将host为foo.bar.com且路径为/testpath的访问引导到test:80这个服务上面。</p>
-<h2 id="Ingress-Controller"><a href="#Ingress-Controller" class="headerlink" title="Ingress Controller"></a>Ingress Controller</h2><p>本质上说Ingress只是存储在etcd上面一些数据，我们可以能过kubernetes的apiserver添加删除和修改ingress资源。那么真正让整个Ingress运转起来的一个重要组件是Ingress Controller。<br>然而，这个Controller并不像其它Controller一样作为kubernetes的核心组件在master启动的时候一起启动起来，它实际上是kubernetes的一个扩展，我们必须选择一个适合自己的Ingress Controller，或者自己去实现一个。</p>
-<p>对于Ingress Controller官方的定义是这样子的：</p>
-<blockquote>
-<p>An Ingress Controller is a daemon, deployed as a Kubernetes Pod, that watches the apiserver’s /ingresses endpoint for updates to the Ingress resource. Its job is to satisfy requests for ingress.</p>
-</blockquote>
-<p>Ingress Controller作为一个守户进程，通过监听apiserver的ingresses资源变化，并且根据其指定的规则建立起外部网络访问内部服务的通道。对于官方描述的 deployed as a Kubernetes Pod，实际上是没办法运用到生产环境当中去的，这个我们在后面会提到这个问题，并且会有相应的解决方案。</p>
-<h2 id="Ingress-Controller的架构"><a href="#Ingress-Controller的架构" class="headerlink" title="Ingress Controller的架构"></a>Ingress Controller的架构</h2><p><img src="http://7xlovv.com1.z0.glb.clouddn.com/ingress-controller.png" alt="ingress-controller"></p>
-<p>上图展示了一个nginx ingress controller的部署架构图，ingress controller通过轮询监听apiserver的方式来获取ingress资源的变化，将ingress资源存储到本地缓存，并通知nginx进行相应的配置修改的加载。<br>ingress controller监控了ingress、service、endpoint、secret、node、configmap一系列资源，一旦资源发生了变化（包括增加、删除和修改），会立即通知backend，例如nginx等。<br>为了减少对apiserver的请求次数，nginx controllder会将每次请求在本地进行缓存，该缓存import了kubernetes提供的包”k8s.io/kubernetes/pkg/client/cache”。</p>
-<h2 id="Ingress-Controller的漂移问题"><a href="#Ingress-Controller的漂移问题" class="headerlink" title="Ingress Controller的漂移问题"></a>Ingress Controller的漂移问题</h2><p>在官方定义的ingress controller，将它部署在kubernetes内部，以pod的方式存在kubernetes集群内部。既然是pod，那么就会存在漂移的问题，而作为外部网络的访问入口，我们是不允许这样的情况发生的。其中一种解决方案是通过VIP和服务发现来解决，但这无疑增加了整个系统的复杂度。<br>其实要解决漂移的问题很简单，我们只要将其部署在kubernetes集群外部，那么它就不受kubernetes的控制，自然而然就不会漂移了。<br>细心的读者可能会发现部署在外部的话，那么集群内外的网络通讯又会成为一个问题。笔者的集群环境的网络覆盖方案选择的是flannel，在每一个node上面初始化kubernetes环境的时候，都会一并装上flannel。<br>关于flannel的原理，这里有一篇文章分析得很详细<a href="http://dockone.io/article/618" target="_blank" rel="noopener">DockOne技术分享（十八）：一篇文章带你了解Flannel</a></p>
-<p>这是flannel的原理图：<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/flannel.png" alt="flannel"></p>
-<p>通过该图我们可以看到通过docker0和flannel0这两块网卡打通了宿主机和集群内部的一个网络通道。</p>
-<p>笔记在自己的节点上进行了验证<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/flannel-if.png" alt="flannel-if"></p>
-<p>也就是说只要部署在该宿主机上的程序，都可以访问该节点上的任何docker容器，至于其它节点的docker容器，通过flanneld到节点的物理网卡，在flanned的时候数据包会被另外一种协议包装（如UDP、VxLAN、AWS VPC和GCE路由）成packet，该包到了另外一个节点的物理网卡再交由flanned进行解包，之后再通过虚拟的flannel和docker两块网卡路由到容器内部。</p>
-<p>因此，我们可以以docker容器和方式或者直接以宿主机进程的方式部署我们的ingress controller。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>至此我们简单的介绍了kubernetes ingress 的整体结构的设计，还有ingress controller的实现机制以及部署问题等，在下一篇文章中我们会通过ingress controller的源码分析，详细讲解它的实现原理。</p>
 
       
     </div>
