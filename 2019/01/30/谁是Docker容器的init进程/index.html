@@ -13,12 +13,12 @@
 <meta property="og:site_name" content="shareinto">
 <meta property="og:description" content="什么是PID 1 在Linux操作系统中，当内核初始化完毕之后，会启动一个init进程，这个进程是整个操作系统的第一个用户进程，所以它的进程ID为1，也就是我们常说的PID1进程。在这之后，所有的用户态进程都是该进程的后代进程，由此我们可以看出，整个系统的用户进程，是一棵由init进程作为根的进程树。   init进程有一个非常厉害的地方，就是SIGKILL信号对它无效。很显然，如果我们将一棵树的">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/5e0ea99909d34a2df356ba6c6c426f8c">
-<meta property="og:updated_time" content="2019-02-01T10:53:01.193Z">
+<meta property="og:image" content="http://yoursite.com/2019/01/30/谁是Docker容器的init进程/5e0ea99909d34a2df356ba6c6c426f8c">
+<meta property="og:updated_time" content="2019-02-03T08:38:33.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="谁是Docker容器的init(1)进程">
 <meta name="twitter:description" content="什么是PID 1 在Linux操作系统中，当内核初始化完毕之后，会启动一个init进程，这个进程是整个操作系统的第一个用户进程，所以它的进程ID为1，也就是我们常说的PID1进程。在这之后，所有的用户态进程都是该进程的后代进程，由此我们可以看出，整个系统的用户进程，是一棵由init进程作为根的进程树。   init进程有一个非常厉害的地方，就是SIGKILL信号对它无效。很显然，如果我们将一棵树的">
-<meta name="twitter:image" content="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/5e0ea99909d34a2df356ba6c6c426f8c">
+<meta name="twitter:image" content="http://yoursite.com/2019/01/30/谁是Docker容器的init进程/5e0ea99909d34a2df356ba6c6c426f8c">
   
     <link rel="alternative" href="/atom.xml" title="shareinto" type="application/atom+xml">
   
@@ -299,7 +299,7 @@
 <p>至此，我们可以大胆的猜想，这个PID 0应该就是这个docker-containerd-shim</p>
 </blockquote>
 <h2 id="Docker-1-11版本后的架构"><a href="#Docker-1-11版本后的架构" class="headerlink" title="Docker 1.11版本后的架构"></a>Docker 1.11版本后的架构</h2><blockquote>
-<p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/5e0ea99909d34a2df356ba6c6c426f8c" alt="Docker"><br>从架构图中我们可以看到shim进程下还有一个runC进程，但我们在进程树中并没有发现runC这个进程。</p>
+<p><img src="/2019/01/30/谁是Docker容器的init进程/5e0ea99909d34a2df356ba6c6c426f8c" alt="Docker"><br>从架构图中我们可以看到shim进程下还有一个runC进程，但我们在进程树中并没有发现runC这个进程。</p>
 </blockquote>
 <h2 id="runC"><a href="#runC" class="headerlink" title="runC"></a>runC</h2><blockquote>
 <p>runC是OCI标准的一个参考实现，而OCI Open Container Initiative，是由多家公司共同成立的项目，并由linux基金会进行管理，致力于container runtime的标准的制定和runc的开发等工作。runc，是对于OCI标准的一个参考实现，是一个可以用于创建和运行容器的CLI(command-line interface)工具。runc直接与容器所依赖的cgroup/linux kernel等进行交互，负责为容器配置cgroup/namespace等启动容器所需的环境，创建启动容器的相关进程。</p>

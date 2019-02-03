@@ -6,7 +6,7 @@
   <title>JVM-In-Docker:暴涨的内存 | shareinto</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="引子最近将java应用迁移至docker容器时，发现了一个有趣的现象：在容器内运行一段时间以后，总是被内核OOM Killed.顾名思义，这是java进程内存使用超过了一定的限制。我们在启动容器的时候，限制其可用物理内存为1G，通过以下命令可查看内存限制 1docker inspect --format=&apos;&amp;#123;&amp;#123;.HostConfig.Memory&amp;#125;&amp;#125;&apos; $&amp;">
-<meta name="keywords" content="java,docker,linux">
+<meta name="keywords" content="linux,docker,java">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM-In-Docker:暴涨的内存">
 <meta property="og:url" content="http://yoursite.com/2018/04/12/JVMInDocker暴涨的内存/index.html">
