@@ -190,10 +190,10 @@
 </nav>
       <div class="body-wrap">
   
-    <article id="post-java中的随机数" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-java-random" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2017/02/20/java中的随机数/" class="article-date">
+      <a href="/2017/02/20/java-random/" class="article-date">
   	<time datetime="2017-02-20T05:56:46.000Z" itemprop="datePublished">2017-02-20</time>
 </a>
     </div>
@@ -207,7 +207,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/02/20/java中的随机数/">java中的随机数</a>
+      <a class="article-title" href="/2017/02/20/java-random/">java中的随机数</a>
     </h1>
   
 
@@ -230,9 +230,9 @@
 </ul>
 <p>文章开头那段代码，只满足了K2这个要求。其实K1，K3,和k4一个都不符合。</p>
 <h1 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h1><p>笔者好奇的是，这段代码在C#中是不可能均匀分布的。因为在C#中new Random()是以1970年1月1日到当前时间的毫秒数作为线性同余算法的种子的。而在现代计算机中1毫秒内可以运行几十万次的while循环，因此你会发现获得的随机数大都相同。<br>来看下面的实验<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Bitmap bmp = new Bitmap(300, 300);</span><br><span class="line">Graphics g = Graphics.FromImage(bmp);</span><br><span class="line">SolidBrush b = new SolidBrush(Color.Black);</span><br><span class="line"></span><br><span class="line">Random random = new Random();</span><br><span class="line">int count = 100000;</span><br><span class="line">while (count-- &gt; 0)</span><br><span class="line">&#123;</span><br><span class="line">    int x = random.Next(300);</span><br><span class="line">    int y = random.Next(300);</span><br><span class="line">    g.FillRectangle(b, x, y, 1, 1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>这段程序生成的图片如下<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/hello.png" alt=""></p>
+<p>这段程序生成的图片如下<br><img src="/image/hello.png" alt=""></p>
 <p>将Random放入While循环中<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Bitmap bmp = new Bitmap(300, 300);</span><br><span class="line">Graphics g = Graphics.FromImage(bmp);</span><br><span class="line">SolidBrush b = new SolidBrush(Color.Black);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">int count = 100000;</span><br><span class="line">while (count-- &gt; 0)</span><br><span class="line">&#123;</span><br><span class="line">    Random random = new Random();   </span><br><span class="line">    int x = random.Next(300);</span><br><span class="line">    int y = random.Next(300);</span><br><span class="line">    g.FillRectangle(b, x, y, 1, 1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p><img src="http://7xlovv.com1.z0.glb.clouddn.com/Csharp2.png" alt=""></p>
+<p><img src="/image/Csharp2.png" alt=""></p>
 <p>这里只能看到零星的几个黑点，可以看到两者的差异非常大。但是在Java中这两种写法产生的结果是一致的。（实际上在早期的JDK版本也是和C#同样的结果）</p>
 <p>那么这到底是怎么回事呢？</p>
 <p>我们来看一下Java中Random类的构建函数<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">Random</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>(seedUniquifier() ^ System.nanoTime());</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></p>
@@ -288,10 +288,10 @@
 
 
   
-    <article id="post-maven+docker调试java应用程序" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-maven+docker-debug-java" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2016/12/31/maven+docker调试java应用程序/" class="article-date">
+      <a href="/2016/12/31/maven+docker-debug-java/" class="article-date">
   	<time datetime="2016-12-31T06:29:13.000Z" itemprop="datePublished">2016-12-31</time>
 </a>
     </div>
@@ -305,7 +305,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2016/12/31/maven+docker调试java应用程序/">maven和docker调试java应用程序</a>
+      <a class="article-title" href="/2016/12/31/maven+docker-debug-java/">maven和docker调试java应用程序</a>
     </h1>
   
 
@@ -329,7 +329,7 @@
 </ul>
 <p>我们甚至可以将这些配置作为pom项目install到机器上让其它项目继承，如果你有一台nexus服务器，还可以将其deploy到上面去让团队其它成员使用^_^。<br><a href="https://dmp.fabric8.io/#introduction" target="_blank" rel="noopener">附上fabric-maven-docker-plugin操作手册</a></p>
 <h1 id="调试"><a href="#调试" class="headerlink" title="调试"></a>调试</h1><p>&#160; &#160; &#160; &#160;配置好pom文件，下面编写一段代码来试一下Linux调试：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Program</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        Runtime runtime = Runtime.getRuntime();</span><br><span class="line">        Process process = runtime.exec(<span class="keyword">new</span> String[]&#123;<span class="string">"/bin/bash"</span>, <span class="string">"-c"</span>, <span class="string">"ls -l /"</span>&#125;);</span><br><span class="line">        process.waitFor();</span><br><span class="line">        BufferedReader reader = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(process.getInputStream()));</span><br><span class="line">        String line = <span class="keyword">null</span>;</span><br><span class="line">        StringBuilder sb = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">        <span class="keyword">while</span> ((line = reader.readLine()) != <span class="keyword">null</span>) &#123;</span><br><span class="line">            sb.append(line + <span class="string">"\n"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(sb.toString());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>笔者使用的是Intellij Idea，Eclipse的使用大同小异。首先要点击右上角的Edit Configurations：<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/docker-debug.png" alt="Edit Configurations"><br>在弹出界面的左上角点击+号，选择Remote：<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/docker-debug2.png" alt="Remote"><br>在配置界面中确保Host和Port和我们刚才在Docker插件中配置的值一致：<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/docker-debug3.png" alt="configuration"><br>最关键的一步是添加maven goal,点击+号，在弹出框中输入clean package docker:build docker:start<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/docker-debug4.png" alt="maven goal"><br>这一步的意思是编译打包，然后build Docker镜像，最后创建并运行容器，这么多步骤在一个maven命中完成，虽然java那么烂，但好歹有个maven看得过去^_^。<br>最后使用Shift+F9调试运行程序，可以看到断点命中，整个过程和本地调试体验一样:<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/docker-debug5.png" alt="break point"></p>
+<p>笔者使用的是Intellij Idea，Eclipse的使用大同小异。首先要点击右上角的Edit Configurations：<br><img src="/image/docker-debug.png" alt="Edit Configurations"><br>在弹出界面的左上角点击+号，选择Remote：<br><img src="/image/docker-debug2.png" alt="Remote"><br>在配置界面中确保Host和Port和我们刚才在Docker插件中配置的值一致：<br><img src="/image/docker-debug3.png" alt="configuration"><br>最关键的一步是添加maven goal,点击+号，在弹出框中输入clean package docker:build docker:start<br><img src="/image/docker-debug4.png" alt="maven goal"><br>这一步的意思是编译打包，然后build Docker镜像，最后创建并运行容器，这么多步骤在一个maven命中完成，虽然java那么烂，但好歹有个maven看得过去^_^。<br>最后使用Shift+F9调试运行程序，可以看到断点命中，整个过程和本地调试体验一样:<br><img src="/image/docker-debug5.png" alt="break point"></p>
 <p>(全文完)</p>
 
       
@@ -363,10 +363,10 @@
 
 
   
-    <article id="post-浅谈java中List接口" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-java-List-interface" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2016/12/15/浅谈java中List接口/" class="article-date">
+      <a href="/2016/12/15/java-List-interface/" class="article-date">
   	<time datetime="2016-12-15T06:18:11.000Z" itemprop="datePublished">2016-12-15</time>
 </a>
     </div>
@@ -380,7 +380,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2016/12/15/浅谈java中List接口/">浅谈java中List接口</a>
+      <a class="article-title" href="/2016/12/15/java-List-interface/">浅谈java中List接口</a>
     </h1>
   
 
@@ -443,10 +443,10 @@
 
 
   
-    <article id="post-协同进程的死锁问题" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-deak-lock" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2016/12/14/协同进程的死锁问题/" class="article-date">
+      <a href="/2016/12/14/deak-lock/" class="article-date">
   	<time datetime="2016-12-14T07:25:01.000Z" itemprop="datePublished">2016-12-14</time>
 </a>
     </div>
@@ -460,7 +460,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2016/12/14/协同进程的死锁问题/">协同进程的死锁问题</a>
+      <a class="article-title" href="/2016/12/14/deak-lock/">协同进程的死锁问题</a>
     </h1>
   
 
@@ -472,12 +472,12 @@
         <h1 id="管道"><a href="#管道" class="headerlink" title="管道"></a>管道</h1><p>&#160; &#160; &#160; &#160;要理解协同进程的话，首先要知道什么是管道。管道是UNIX系统当中IPC的最古老形式，所有的UNIX系统都提供这种通信机制。<br>管道是通过调用pipe函数创建的:</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">pipe</span><span class="params">(<span class="keyword">int</span> fd[<span class="number">2</span>])</span></span>;</span><br></pre></td></tr></table></figure>
 <p>经由参数返回两个文件描述符：fd[0]为读而打开，fd[1]为写而打开。fd[1]的输出是fd[0]的输入。下图是管道的结构：</p>
-<p><img src="http://7xlovv.com1.z0.glb.clouddn.com/pipe.jpg" alt="管道"></p>
+<p><img src="/image/pipe.jpg" alt="管道"></p>
 <p>单个进程中的管道几乎没有任何用处。通常，进程会先调用pipe，接着调用fork，从而创建从父进程到子进程的IPC通道，反之亦然。下图显示了这种情况</p>
-<p><img src="http://7xlovv.com1.z0.glb.clouddn.com/fork_pipe.jpg" alt="父子进程的管道"></p>
+<p><img src="/image/fork_pipe.jpg" alt="父子进程的管道"></p>
 <p>fork之后做什么取决于我们想要的数据流的方向。对于从父进程到子进程的管道，父进程关闭管道的读端(fd[0]),子进程关闭写端(fd[1])。下图显示了在此之后描述符的状态结果：</p>
-<p><img src="http://7xlovv.com1.z0.glb.clouddn.com/fork_pipe2.jpg" alt="父子进程的管道"></p>
-<h1 id="协同进程"><a href="#协同进程" class="headerlink" title="协同进程"></a>协同进程</h1><p>&#160; &#160; &#160; &#160;当A进程既产生B进程的输入，又读取B进程的输出时，B进程就变成了A进程的<strong>协同进程</strong>（coprocess）。下图显示了这种安排：<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/coprocess.jpg" alt="协同进程"></p>
+<p><img src="/image/fork_pipe2.jpg" alt="父子进程的管道"></p>
+<h1 id="协同进程"><a href="#协同进程" class="headerlink" title="协同进程"></a>协同进程</h1><p>&#160; &#160; &#160; &#160;当A进程既产生B进程的输入，又读取B进程的输出时，B进程就变成了A进程的<strong>协同进程</strong>（coprocess）。下图显示了这种安排：<br><img src="/image/coprocess.jpg" alt="协同进程"></p>
 <h1 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h1><p>让我们通过一个示例来观察协同进程。我们先创建一个简单的协同进程，它从其标准输入读取两个数，计算它们的和，然后将和写至其标准输出。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"apue.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> n, int1,int2;</span><br><span class="line">  <span class="keyword">char</span> line[MAXLINE];</span><br><span class="line"></span><br><span class="line">  <span class="keyword">while</span>((n = read(STDIN_FILENO, line, MAXLINE)) &gt; <span class="number">0</span>)</span><br><span class="line">  &#123;</span><br><span class="line">    line[n] = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span>(<span class="built_in">sscanf</span>(line, <span class="string">"%d%d"</span>,&amp;int1,&amp;int2) == <span class="number">2</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">sprintf</span>(line, <span class="string">"%d\n"</span>,int1 + int2);</span><br><span class="line">      n = <span class="built_in">strlen</span>(line);</span><br><span class="line">      <span class="keyword">if</span>(write(STDOUT_FILENO,line,n) != n)</span><br><span class="line">      &#123;</span><br><span class="line">        err_sys(<span class="string">"write error"</span>);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">if</span>(write(STDOUT_FILENO,<span class="string">"invalid args\n"</span>,<span class="number">13</span>) != <span class="number">13</span>)</span><br><span class="line">      &#123;</span><br><span class="line">        err_sys(<span class="string">"write error"</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>对此程序进行编译，并保存为可执行文件add</p>
 <p>下面的程序创建两个管道： 一个是协同进程的标准输入，另一个是协同进程的标准输出。它先从其标准输入读取两个数之后调用add协同进程，并将协同进程送来的值写到其标准输出。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"apue.h"</span></span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sig_pipe</span><span class="params">(<span class="keyword">int</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> n,fd1[<span class="number">2</span>],fd2[<span class="number">2</span>];</span><br><span class="line">  <span class="keyword">pid_t</span> pid;</span><br><span class="line">  <span class="keyword">char</span> line[MAXLINE];</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span>(signal(SIGPIPE,sig_pipe) == SIG_ERR)</span><br><span class="line">  &#123;</span><br><span class="line">    err_sys(<span class="string">"signal error"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span>(pipe(fd1) &lt; <span class="number">0</span> || pipe(fd2) &lt; <span class="number">0</span>)</span><br><span class="line">  &#123;</span><br><span class="line">    err_sys(<span class="string">"pipe error"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span>((pid = fork()) &lt;<span class="number">0</span>)</span><br><span class="line">  &#123;</span><br><span class="line">    err_sys(<span class="string">"fork error"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span> <span class="keyword">if</span>(pid &gt; <span class="number">0</span>)</span><br><span class="line">  &#123;</span><br><span class="line">    close(fd1[<span class="number">0</span>]);</span><br><span class="line">    close(fd2[<span class="number">1</span>]);</span><br><span class="line">    <span class="keyword">while</span>(fgets(line,MAXLINE,<span class="built_in">stdin</span>) != <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      n = <span class="built_in">strlen</span>(line);</span><br><span class="line">      <span class="keyword">if</span>(write(fd1[<span class="number">1</span>],line,n) != n)</span><br><span class="line">      &#123;</span><br><span class="line">        err_sys(<span class="string">"write error to pipe"</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span>((n = read(fd2[<span class="number">0</span>],line,MAXLINE)) &lt; <span class="number">0</span>)</span><br><span class="line">      &#123;</span><br><span class="line">        err_sys(<span class="string">"read error from pipe"</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span>(n == <span class="number">0</span>)</span><br><span class="line">      &#123;</span><br><span class="line">        err_msg(<span class="string">"child closed pipe"</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      line[n] = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">if</span>(<span class="built_in">fputs</span>(line,<span class="built_in">stdout</span>) == EOF)</span><br><span class="line">      &#123;</span><br><span class="line">        err_sys(<span class="string">"fputs error"</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(ferror(<span class="built_in">stdin</span>))</span><br><span class="line">    &#123;</span><br><span class="line">      err_sys(<span class="string">"fgets error on stdin"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">    close(fd1[<span class="number">1</span>]);</span><br><span class="line">    close(fd2[<span class="number">0</span>]);</span><br><span class="line">    <span class="keyword">if</span>(fd1[<span class="number">0</span>] != STDIN_FILENO)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">if</span>(dup2(fd1[<span class="number">0</span>],STDIN_FILENO) != STDIN_FILENO)</span><br><span class="line">      &#123;</span><br><span class="line">        err_sys(<span class="string">"dup2 error to stdin"</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      close(fd1[<span class="number">0</span>]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(fd2[<span class="number">1</span>] != STDOUT_FILENO)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">if</span>(dup2(fd2[<span class="number">1</span>],STDOUT_FILENO) != STDOUT_FILENO)</span><br><span class="line">      &#123;</span><br><span class="line">        err_sys(<span class="string">"dup2 error to stdout"</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      close(fd2[<span class="number">1</span>]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(execl(<span class="string">"./add"</span>,<span class="string">"add"</span>,(<span class="keyword">char</span> *)<span class="number">0</span>) &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      err_sys(<span class="string">"execl error"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sig_pipe</span><span class="params">(<span class="keyword">int</span> signo)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"SIGPIPE caught\n"</span>);</span><br><span class="line">  <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
@@ -524,10 +524,10 @@
 
 
   
-    <article id="post-linux中的文件强制锁" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-linux-lockfile" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2016/12/07/linux中的文件强制锁/" class="article-date">
+      <a href="/2016/12/07/linux-lockfile/" class="article-date">
   	<time datetime="2016-12-07T09:39:44.000Z" itemprop="datePublished">2016-12-07</time>
 </a>
     </div>
@@ -541,7 +541,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2016/12/07/linux中的文件强制锁/">linux中的文件强制锁</a>
+      <a class="article-title" href="/2016/12/07/linux-lockfile/">linux中的文件强制锁</a>
     </h1>
   
 
@@ -610,10 +610,10 @@
 
 
   
-    <article id="post-linux的控制终端" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-linux-terminal" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2016/11/17/linux的控制终端/" class="article-date">
+      <a href="/2016/11/17/linux-terminal/" class="article-date">
   	<time datetime="2016-11-17T10:55:08.000Z" itemprop="datePublished">2016-11-17</time>
 </a>
     </div>
@@ -627,7 +627,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2016/11/17/linux的控制终端/">linux的控制终端</a>
+      <a class="article-title" href="/2016/11/17/linux-terminal/">linux的控制终端</a>
     </h1>
   
 
@@ -647,14 +647,14 @@
 <h2 id="伪终端"><a href="#伪终端" class="headerlink" title="伪终端"></a>伪终端</h2><p>&#160; &#160; &#160; &#160;随着图形终端的出现，创建终端窗口的应用也被开发出来，它仿真了基于字符的终端，使用户可以用熟悉的方式（shell命令行）与主机进行交互。包括使用网络进行远程登录的远程终端也是使用的这种方式。网络登录与传统的串行终端登录的区别在于，前者必须等待一个网络连接请求到达，而不是使一个进程等待每一个可能的登录。为了使同一个软件既能处理终端登录又能处理网络登录，系统使用了一种称为伪终端（pseudo terminal）的软件驱动程序，<br>它仿真串行终端的运行行为，并将终端操作映射为网络操作。</p>
 <h2 id="进程组"><a href="#进程组" class="headerlink" title="进程组"></a>进程组</h2><p>&#160; &#160; &#160; &#160;每个进程除了有一进程ID外，还属于一个进程组，进程组就是一个或多个进程的集合。<br>&#160; &#160; &#160; &#160;那为啥Linux里要有进程组呢？其实，提供进程组就是为了方便对进程进行管理。假设要完成一个任务，需要同时并发100个进程。当用户处于某种原因要终止 这个任务时，要是没有进程组，就需要手动的一个个去杀死这100个进程。</p>
 <h2 id="作业"><a href="#作业" class="headerlink" title="作业"></a>作业</h2><p>&#160; &#160; &#160; &#160;Shell分前后台来控制的不是进程而是作业（Job）或者进程组（Process Group）。一个前台作业可以由多个进程组成，一个后台也可以由多个进程组成，Shell可以运行一个前台作业和任意多个后台作业，这称为作业控制。<br>&#160; &#160; &#160; &#160;作业与进程组的区别：如果作业中的某个进程又创建了子进程，则子进程不属于作业。一旦作业运行结束，Shell就把自己提到前台，如果原来的前台进程还存在（如果这个子进程还没终止），它自动变为后台进程组。</p>
-<h2 id="会话"><a href="#会话" class="headerlink" title="会话"></a>会话</h2><p>&#160; &#160; &#160; &#160;会话（session）是一个或多个进程组的集合。<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/session.jpg" alt="会话"><br>&#160; &#160; &#160; &#160;如图，该会话中有三个进程组。通常是由shell的管道将几个进程编成一组的。上图有可能是由下列形式的shell命令形成的:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ proc1 | proc2 &amp; </span><br><span class="line">$ proc3 | proc4 | proc5</span><br></pre></td></tr></table></figure></p>
+<h2 id="会话"><a href="#会话" class="headerlink" title="会话"></a>会话</h2><p>&#160; &#160; &#160; &#160;会话（session）是一个或多个进程组的集合。<br><img src="/image/session.jpg" alt="会话"><br>&#160; &#160; &#160; &#160;如图，该会话中有三个进程组。通常是由shell的管道将几个进程编成一组的。上图有可能是由下列形式的shell命令形成的:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ proc1 | proc2 &amp; </span><br><span class="line">$ proc3 | proc4 | proc5</span><br></pre></td></tr></table></figure></p>
 <h2 id="控制终端"><a href="#控制终端" class="headerlink" title="控制终端"></a>控制终端</h2><ul>
 <li>当一个终端与一个会话相关联后，那么这个终端就称为该会话的控制终端(controlling terminal)。</li>
 <li>建立与控制终端连接的会话首进程被称为控制进程(controlling process)。</li>
 <li>一个会话中的几个进程组可被分成一个前台进程组(foreground process group)以及一个或多个后台进程组(background process group)。</li>
 <li>如果一个会话有一个控制终端的话， 则它有一个前台进程组，其他进程组为后台进程组。</li>
 <li>无论何时键入终端的中断键或退出键，都会将中断信号或退出信号发送至前台进程组的所有进程。</li>
-<li>如果终端检测到调制解调器（或网络）断开，则挂断信号（SIGHUP）发送至控制进程（会话首进程），如果会<strong>话首进程退出,则将挂断信号（SIGHUP）发送至前台进程组的所有进程</strong>。<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/session2.jpg" alt="会话"><br>&#160; &#160; &#160; &#160;有的时候程序的标准输入，输出会被重定向到其它地方，那么会话中的进程要<strong>获取终端的话可以open文件/dev/tty</strong>，这就告诉内核我要获取当前会话的控制终端。如果会话没有控制终端的话，那么对此设备的open将失败。</li>
+<li>如果终端检测到调制解调器（或网络）断开，则挂断信号（SIGHUP）发送至控制进程（会话首进程），如果会<strong>话首进程退出,则将挂断信号（SIGHUP）发送至前台进程组的所有进程</strong>。<br><img src="/image/session2.jpg" alt="会话"><br>&#160; &#160; &#160; &#160;有的时候程序的标准输入，输出会被重定向到其它地方，那么会话中的进程要<strong>获取终端的话可以open文件/dev/tty</strong>，这就告诉内核我要获取当前会话的控制终端。如果会话没有控制终端的话，那么对此设备的open将失败。</li>
 </ul>
 <h2 id="孤儿进程组"><a href="#孤儿进程组" class="headerlink" title="孤儿进程组"></a>孤儿进程组</h2><p>&#160; &#160; &#160; &#160;孤儿进程组定义为：该组中每个成员的父进程要么是该组的一个成员，要么不是该组所属会话的成员。换句话说，一个进程组中有一个进程，其父进程在属于同一个会话的另一个组中，那么它就不是孤儿进程组。</p>
 <blockquote>
@@ -703,10 +703,10 @@
 
 
   
-    <article id="post-制作unix环境高级编程编译环境的docker镜像" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-unix-environment" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2016/10/31/制作unix环境高级编程编译环境的docker镜像/" class="article-date">
+      <a href="/2016/10/31/unix-environment/" class="article-date">
   	<time datetime="2016-10-31T12:46:34.000Z" itemprop="datePublished">2016-10-31</time>
 </a>
     </div>
@@ -720,7 +720,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2016/10/31/制作unix环境高级编程编译环境的docker镜像/">制作unix环境高级编程编译环境的docker镜像</a>
+      <a class="article-title" href="/2016/10/31/unix-environment/">制作unix环境高级编程编译环境的docker镜像</a>
     </h1>
   
 
@@ -787,10 +787,10 @@
 
 
   
-    <article id="post-排列组合算法" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-comb-perm" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2016/10/31/排列组合算法/" class="article-date">
+      <a href="/2016/10/31/comb-perm/" class="article-date">
   	<time datetime="2016-10-31T12:22:56.000Z" itemprop="datePublished">2016-10-31</time>
 </a>
     </div>
@@ -804,7 +804,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2016/10/31/排列组合算法/">排列组合算法</a>
+      <a class="article-title" href="/2016/10/31/comb-perm/">排列组合算法</a>
     </h1>
   
 
@@ -843,10 +843,10 @@
 
 
   
-    <article id="post-docker-compose开机自动重启" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-docker-compose-autostart" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2016/03/09/docker-compose开机自动重启/" class="article-date">
+      <a href="/2016/03/09/docker-compose-autostart/" class="article-date">
   	<time datetime="2016-03-09T07:09:07.000Z" itemprop="datePublished">2016-03-09</time>
 </a>
     </div>
@@ -860,7 +860,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2016/03/09/docker-compose开机自动重启/">docker-compose开机自动重启</a>
+      <a class="article-title" href="/2016/03/09/docker-compose-autostart/">docker-compose开机自动重启</a>
     </h1>
   
 
@@ -957,9 +957,9 @@
 <li>每次调用都进行方法地址查询的动态语言（如Smalltalk和它的众多模仿者、javascript和python等，有的会通过缓存提高它调用的效率）。<br>Go则位于两者的中间，它拥有方法表，但却是在运行时计算它们。我不知道go是不是第一个使用该技术的语言，但这种方式肯定是不常见的。</li>
 </ul>
 <p>举个例子,一个Binary类型的值是一个64位整型，它由两个32位的字组成（假设我们现在使用的是32位的机器）</p>
-<p><img src="http://7xlovv.com1.z0.glb.clouddn.com/gointer1.png" alt=""></p>
+<p><img src="/image/gointer1.png" alt=""></p>
 <p>Interface由两个字长组成，其中一个存储指向接口类型表的指针，另一个存储指向数据的指针。如果将b赋值给一个Stringer类型的接口变量，其内存结构如下图所示</p>
-<p><img src="http://7xlovv.com1.z0.glb.clouddn.com/gointer2.png" alt=""></p>
+<p><img src="/image/gointer2.png" alt=""></p>
 <p>(接口中存储的指针对程序是不可见的，它不会直接暴露给用户)</p>
 <p>第一个字节中的指针指向一个名字叫作itable的内存块（在C中叫作Itab）。itable头部存储了一些与类型相关的元数据，然后才是函数指针列表。itable对应的是接口类型，而不是动态类型。以我们的例子来讲，Stringer的itable保存了类型Binary的元数据，然后才是那些满足Stringer接口的函数指针列表，在这个例子中就只有一个String方法，而Binary的其它方法则不会在itable中出现。</p>
 <p>第二个字节中的指针则指向b的一个副本。下面这个赋值语句 var s Stringer = b 将会申请一个b的副本，并将第二个字节中的指针指向该副本，其原理和 var c unit64 = b 一样。当我们改变b的值的时候，s和c的值将不会被改变。在接口中存储的值可能是任意大小的，但是接口本身却只有一个字来存储数据，所以程序会在堆上申请一组内存来存储该数据，然后再将第二个字上的指针指向该内存组。（如果数据的大小刚才等于或小于一个字，我们在后面会讨论该情况）</p>
@@ -972,12 +972,12 @@
 <ul>
 <li>如果接口类型是interface{}的情况下，也就是没有任何方法的情况下，itable也就没有存在的必要。在这种情况下，第一个字就可以存储实际类型了：</li>
 </ul>
-<p><img src="http://7xlovv.com1.z0.glb.clouddn.com/gointer3.png" alt=""></p>
+<p><img src="/image/gointer3.png" alt=""></p>
 <p>一个接口有没有方法go将用一个静态属性表示，因此编译器知道第一个字表示的是哪一种情况。</p>
 <ul>
 <li>如果接口所关联的类型的值大小刚好是一个机器字长，那就没有必要进行堆内存的申请了。如果我们像Binary一样定义一个Binary32，将uint32作为它的底层类型，那么它的值就可以直接存储在第二个字中：</li>
 </ul>
-<p><img src="http://7xlovv.com1.z0.glb.clouddn.com/gointer4.png" alt=""></p>
+<p><img src="/image/gointer4.png" alt=""></p>
 <p>在这种情况下，String的函数签名将变成(Binary) string,而不是原来的(*Binary) string。</p>
 <p>因此，当给一个空接口赋值一个大小为一个机器字长的值（或更小）时，它将同时采用上面这两种优化方式。</p>
 

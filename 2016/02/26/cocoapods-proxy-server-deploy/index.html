@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>cocoapods-proxy服务器部署 | shareinto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="cocoapods-proxy服务器部署 1. 制作git-mirrors镜像 Dockerfile:12345678910111213141516171819202122232425262728293031323334FROM centosMAINTAINER &amp;lt;dockerfun&amp;gt;ENV GITLAB_HOST=&quot;git.menethil.net&quot; \    GITLAB_USER">
+<meta name="keywords" content="ios">
+<meta property="og:type" content="article">
+<meta property="og:title" content="cocoapods-proxy服务器部署">
+<meta property="og:url" content="http://yoursite.com/2016/02/26/cocoapods-proxy-server-deploy/index.html">
+<meta property="og:site_name" content="shareinto">
+<meta property="og:description" content="cocoapods-proxy服务器部署 1. 制作git-mirrors镜像 Dockerfile:12345678910111213141516171819202122232425262728293031323334FROM centosMAINTAINER &amp;lt;dockerfun&amp;gt;ENV GITLAB_HOST=&quot;git.menethil.net&quot; \    GITLAB_USER">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-02-03T09:20:19.004Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="cocoapods-proxy服务器部署">
+<meta name="twitter:description" content="cocoapods-proxy服务器部署 1. 制作git-mirrors镜像 Dockerfile:12345678910111213141516171819202122232425262728293031323334FROM centosMAINTAINER &amp;lt;dockerfun&amp;gt;ENV GITLAB_HOST=&quot;git.menethil.net&quot; \    GITLAB_USER">
+  
+    <link rel="alternative" href="/atom.xml" title="shareinto" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+			<img lazy-src="/image/litten.png" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/">Dockerfun</a></h1>
+		</hgroup>
+
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						<div class="icon-wrap icon-link hide" data-idx="2">
+							<div class="loopback_l"></div>
+							<div class="loopback_r"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						<li>友情链接</li>
+						
+						
+						<li>关于我</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="#" title="github">github</a>
+					        
+								<a class="weibo" target="_blank" href="#" title="weibo">weibo</a>
+					        
+								<a class="rss" target="_blank" href="#" title="rss">rss</a>
+					        
+								<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/algorithm/" style="font-size: 10px;">algorithm</a> <a href="/tags/centos/" style="font-size: 17.5px;">centos</a> <a href="/tags/cpu/" style="font-size: 10px;">cpu</a> <a href="/tags/docker/" style="font-size: 20px;">docker</a> <a href="/tags/docker-compose/" style="font-size: 10px;">docker-compose</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/git-flow/" style="font-size: 10px;">git-flow</a> <a href="/tags/go/" style="font-size: 10px;">go</a> <a href="/tags/ios/" style="font-size: 10px;">ios</a> <a href="/tags/java/" style="font-size: 15px;">java</a> <a href="/tags/kernel/" style="font-size: 12.5px;">kernel</a> <a href="/tags/kubernetes/" style="font-size: 17.5px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 20px;">linux</a> <a href="/tags/performance/" style="font-size: 10px;">performance</a> <a href="/tags/thread/" style="font-size: 10px;">thread</a> <a href="/tags/tool/" style="font-size: 10px;">tool</a> <a href="/tags/操作系统/" style="font-size: 17.5px;">操作系统</a> <a href="/tags/效率/" style="font-size: 10px;">效率</a>
+					</div>
+				</section>
+				
+				
+				
+				<section class="switch-part switch-part3">
+					<div id="js-friends">
+					
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">奥巴马的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">卡卡的美丽传说</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">本泽马的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">吉格斯的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">习大大大不同</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">托蒂的博客</a>
+			        
+			        </div>
+				</section>
+				
+
+				
+				
+				<section class="switch-part switch-part4">
+				
+					<div id="js-aboutme">虽然不知道你在说什么，但是感觉好厉害的样子...</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide">Dockerfun</h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="/image/litten.png" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author">Dockerfun</h1>
+			</hgroup>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="#" title="github">github</a>
+			        
+						<a class="weibo" target="_blank" href="#" title="weibo">weibo</a>
+			        
+						<a class="rss" target="_blank" href="#" title="rss">rss</a>
+			        
+						<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-cocoapods-proxy-server-deploy" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/02/26/cocoapods-proxy-server-deploy/" class="article-date">
+  	<time datetime="2016-02-26T08:38:06.000Z" itemprop="datePublished">2016-02-26</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      cocoapods-proxy服务器部署
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ios/">ios</a></li></ul>
+	</div>
+
+        
+	<div class="article-category tagcloud">
+	<a class="article-category-link" href="/categories/ios/">ios</a>
+	</div>
+
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="cocoapods-proxy服务器部署"><a href="#cocoapods-proxy服务器部署" class="headerlink" title="cocoapods-proxy服务器部署"></a>cocoapods-proxy服务器部署</h1><hr>
+<h2 id="1-制作git-mirrors镜像"><a href="#1-制作git-mirrors镜像" class="headerlink" title="1. 制作git-mirrors镜像"></a>1. 制作git-mirrors镜像</h2><blockquote>
+<p>Dockerfile:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">FROM centos</span><br><span class="line"></span><br><span class="line">MAINTAINER &lt;dockerfun&gt;</span><br><span class="line"></span><br><span class="line">ENV GITLAB_HOST=<span class="string">"git.menethil.net"</span> \</span><br><span class="line">    GITLAB_USER=<span class="string">"850428"</span> \</span><br><span class="line">    PRIVATE_TOKEN=<span class="string">"xmyV3Q4TXz1WDzPvyhha"</span> \</span><br><span class="line">    GITLAB_NAMESPACE=<span class="string">"Mirrors"</span> \</span><br><span class="line">    GITLAB_URL=<span class="string">"http:\/\/git.menethil.net"</span> \</span><br><span class="line">    SYSTEM_USER=<span class="string">"root"</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">WORKDIR /root</span><br><span class="line"></span><br><span class="line">RUN yum install python-setuptools -y  &amp;&amp; yum install git -y &amp;&amp; git <span class="built_in">clone</span> https://github.com/alexvh/python-gitlab3.git</span><br><span class="line"></span><br><span class="line">WORKDIR /root/python-gitlab3</span><br><span class="line"></span><br><span class="line">RUN git checkout v0.5.4 &amp;&amp; python setup.py install</span><br><span class="line"></span><br><span class="line">RUN mkdir -p /root/.ssh &amp;&amp;  <span class="built_in">echo</span> <span class="string">'Host $&#123;GITLAB_HOST&#125;'</span> &gt; /root/.ssh/config &amp;&amp; <span class="built_in">echo</span> <span class="string">'User $&#123;GITLAB_USER&#125;'</span> &gt;&gt; /root/.ssh/config \</span><br><span class="line">    &amp;&amp; <span class="built_in">echo</span> <span class="string">'$&#123;PRIVATE_TOKEN&#125;'</span> &gt; /root/private_token</span><br><span class="line"></span><br><span class="line">WORKDIR /root</span><br><span class="line"></span><br><span class="line">RUN mkdir /root/repositories &amp;&amp; git <span class="built_in">clone</span> https://github.com/samrocketman/gitlab-mirrors.git</span><br><span class="line"></span><br><span class="line">WORKDIR /root/gitlab-mirrors</span><br><span class="line"></span><br><span class="line">COPY config.sh /root/gitlab-mirrors/config.sh</span><br><span class="line"></span><br><span class="line">COPY entrypoint.sh /sbin/entrypoint.sh</span><br><span class="line"></span><br><span class="line">ENTRYPOINT [<span class="string">"/sbin/entrypoint.sh"</span>]</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<p>其中另外两个文件如下：<br>config.sh:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#Environment file</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># gitlab-mirrors settings</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#The user git-mirrors will run as.</span></span><br><span class="line">system_user=<span class="variable">$&#123;SYSTEM_USER&#125;</span></span><br><span class="line"><span class="comment">#The home directory path of the $system_user</span></span><br><span class="line">user_home=<span class="string">"/home/<span class="variable">$&#123;SYSTEM_USER&#125;</span>"</span></span><br><span class="line"><span class="comment">#The repository directory where gitlab-mirrors will contain copies of mirrored</span></span><br><span class="line"><span class="comment">#repositories before pushing them to gitlab.</span></span><br><span class="line">repo_dir=<span class="string">"<span class="variable">$&#123;user_home&#125;</span>/repositories"</span></span><br><span class="line"><span class="comment">#colorize output of add_mirror.sh, update_mirror.sh, and git-mirrors.sh</span></span><br><span class="line"><span class="comment">#commands.</span></span><br><span class="line">enable_colors=<span class="literal">true</span></span><br><span class="line"><span class="comment">#These are additional options which should be passed to git-svn.  On the command</span></span><br><span class="line"><span class="comment">#line type "git help svn"</span></span><br><span class="line">git_svn_additional_options=<span class="string">"-s"</span></span><br><span class="line"><span class="comment">#Force gitlab-mirrors to not create the gitlab remote so a remote URL must be</span></span><br><span class="line"><span class="comment">#provided. (superceded by no_remote_set)</span></span><br><span class="line">no_create_set=<span class="literal">false</span></span><br><span class="line"><span class="comment">#Force gitlab-mirrors to only allow local remotes only.</span></span><br><span class="line">no_remote_set=<span class="literal">false</span></span><br><span class="line"><span class="comment">#Enable force fetching and pushing.  Will overwrite references if upstream</span></span><br><span class="line"><span class="comment">#forced pushed.  Applies to git projects only.</span></span><br><span class="line">force_update=<span class="literal">false</span></span><br><span class="line"><span class="comment">#This option is for pruning mirrors.  If a branch is deleted upstream then that</span></span><br><span class="line"><span class="comment">#change will propagate into your GitLab mirror.  Aplies to git projects only.</span></span><br><span class="line">prune_mirrors=<span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Gitlab settings</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#This is the Gitlab group where all project mirrors will be grouped.</span></span><br><span class="line">gitlab_namespace=<span class="string">"<span class="variable">$&#123;GITLAB_NAMESPACE&#125;</span>"</span></span><br><span class="line"><span class="comment">#This is the base web url of your Gitlab server.</span></span><br><span class="line">gitlab_url=<span class="string">"<span class="variable">$&#123;GITLAB_URL&#125;</span>"</span></span><br><span class="line"><span class="comment">#Special user you created in Gitlab whose only purpose is to update mirror sites</span></span><br><span class="line"><span class="comment">#and admin the $gitlab_namespace group.</span></span><br><span class="line">gitlab_user=<span class="string">"<span class="variable">$&#123;GITLAB_USER&#125;</span>"</span></span><br><span class="line"><span class="comment">#Generate a token for your $gitlab_user and set it here.</span></span><br><span class="line">gitlab_user_token_secret=<span class="string">"<span class="variable">$&#123;PRIVATE_TOKEN&#125;</span>"</span></span><br><span class="line"><span class="comment">#Verify signed SSL certificates?</span></span><br><span class="line">ssl_verify=<span class="literal">false</span></span><br><span class="line"><span class="comment">#Push to GitLab over http?  Otherwise will push projects via SSH.</span></span><br><span class="line">http_remote=<span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Gitlab new project default settings.  If a project needs to be created by</span></span><br><span class="line"><span class="comment"># gitlab-mirrors then it will assign the following values as defaults.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#values must be true or false</span></span><br><span class="line">issues_enabled=<span class="literal">false</span></span><br><span class="line">wall_enabled=<span class="literal">false</span></span><br><span class="line">wiki_enabled=<span class="literal">false</span></span><br><span class="line">snippets_enabled=<span class="literal">false</span></span><br><span class="line">merge_requests_enabled=<span class="literal">false</span></span><br><span class="line">public=<span class="literal">false</span></span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<p>entrypoint.sh:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> -e</span><br><span class="line"></span><br><span class="line">[[ -n <span class="variable">$DEBUG_ENTRYPOINT</span> ]] &amp;&amp; <span class="built_in">set</span> -x</span><br><span class="line"></span><br><span class="line">sed <span class="string">'s/\$&#123;GITLAB_NAMESPACE&#125;/'</span><span class="string">"<span class="variable">$&#123;GITLAB_NAMESPACE&#125;</span>"</span><span class="string">'/'</span> -i ~/gitlab-mirrors/config.sh</span><br><span class="line"></span><br><span class="line">sed <span class="string">'s/\$&#123;GITLAB_URL&#125;/'</span><span class="string">"<span class="variable">$&#123;GITLAB_URL&#125;</span>"</span><span class="string">'/'</span> -i ~/gitlab-mirrors/config.sh</span><br><span class="line"></span><br><span class="line">sed <span class="string">'s/\$&#123;GITLAB_USER&#125;/'</span><span class="string">"<span class="variable">$&#123;GITLAB_USER&#125;</span>"</span><span class="string">'/'</span> -i ~/gitlab-mirrors/config.sh</span><br><span class="line"></span><br><span class="line">sed <span class="string">'s/\$&#123;PRIVATE_TOKEN&#125;/'</span><span class="string">"<span class="variable">$&#123;PRIVATE_TOKEN&#125;</span>"</span><span class="string">'/'</span> -i ~/gitlab-mirrors/config.sh</span><br><span class="line"></span><br><span class="line">sed <span class="string">'s/\$&#123;SYSTEM_USER&#125;/'</span><span class="string">"<span class="variable">$&#123;SYSTEM_USER&#125;</span>"</span><span class="string">'/'</span> -i ~/gitlab-mirrors/config.sh</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ <span class="variable">$#</span> -eq 0 ];<span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">"no arguments"</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  $*</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">exit</span> 0</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<p>镜像完成后，记得先在宿主机上面生成ssh-keygen,添加到自己搭建的gitlab服务器上，并运行镜像一次<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run --name git-mirrors -v /root/.ssh:/root/.ssh gitlab-mirrors /bin/bash</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<p>记得-v映射到宿主机上的/root/.ssh目录<br>进入容器<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-enter git-mirrors</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<p>手动运行一次<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./add_mirror.sh --git --project-name gitlab-mirrors --mirror https://github.com/samrocketman/gitlab-mirrors.git</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<p>在提示是否接受host的时候，输入yes<br>之后退出容器并删除容器<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">exit</span></span><br><span class="line">docker rm -f git-mirrors</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<h2 id="2-拉取salt-master镜像"><a href="#2-拉取salt-master镜像" class="headerlink" title="2.拉取salt-master镜像"></a>2.拉取salt-master镜像</h2><blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull 120.26.128.207:5000/shareinto/salt-master:0.2</span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<p>该镜像集成了salt-master，salt-api环境<br>运行该镜像脚本如下<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line">docker rm -f salt-master</span><br><span class="line">docker run \</span><br><span class="line">--name salt-master \</span><br><span class="line">-p 1022:22 \</span><br><span class="line">-p 4505:4505 \</span><br><span class="line">-p 4506:4506 \</span><br><span class="line">-p 8886:8886 \</span><br><span class="line">-v /data/etc/salt/pki:/etc/salt/pki -v /data/var/cache/salt:/var/cache/salt -v /data/srv/salt:/srv/salt \</span><br><span class="line">-d 120.26.128.207:5000/shareinto/salt-master:0.2</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<h2 id="3-安装salt-minion"><a href="#3-安装salt-minion" class="headerlink" title="3.安装salt-minion"></a>3.安装salt-minion</h2><blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum install salt-minion -y</span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<p>修改/etc/salt/minion文件<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">master: 172.24.133.159</span><br><span class="line">id: 172.24.133.159</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<p>这里因为master机和minion机是同一台机器，所以master和id一样，使用时替换成你自己的ip<br>完成后，启动salt-minion服务<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo service salt-minion start</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<h2 id="4-安装git客户端"><a href="#4-安装git客户端" class="headerlink" title="4.安装git客户端"></a>4.安装git客户端</h2><blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum install git -y</span><br></pre></td></tr></table></figure>
+</blockquote>
+<h2 id="5-创建几个目录-data-original-data-temp-specs-data-formal-specs"><a href="#5-创建几个目录-data-original-data-temp-specs-data-formal-specs" class="headerlink" title="5.创建几个目录 /data/original /data/temp/specs /data/formal/specs"></a>5.创建几个目录 /data/original /data/temp/specs /data/formal/specs</h2><blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir -p /data/original</span><br><span class="line">sudo mkdir -p /data/temp/specs</span><br><span class="line">sudo mkdir -p /data/formal/specs</span><br><span class="line"><span class="built_in">cd</span> /data/original</span><br><span class="line">sudo git <span class="built_in">clone</span> https://github.com/cocoapods/specs.git</span><br><span class="line"><span class="built_in">cd</span> /data/formal/specs</span><br><span class="line">sudo git init</span><br><span class="line">sudo git add .</span><br><span class="line">sudo git commit -m <span class="string">"first commit"</span></span><br><span class="line">sudo git remote add origin git@git.sdp.nd:Mirrors/specs.git</span><br><span class="line">sudo git push -u origin master</span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<p>在最后push到服务器之前，记得先生成ssh-keygen,添加到自己搭建的gitlab服务器上</p>
+</blockquote>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/03/03/docker-remote-access/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          docker-开启远程访问
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/09/11/centos6-5-docker-install/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">centos6.5上安装docker环境</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">分享到：</span>
+		<a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<a class="jiathis_button_tumblr"></a>
+		<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
+
+
+
+<div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="cocoapods-proxy-server-deploy" data-title="cocoapods-proxy服务器部署" data-url="http://yoursite.com/2016/02/26/cocoapods-proxy-server-deploy/"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"true"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2019 Dockerfun
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: true,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+<script src="http://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  </div>
+</body>
+</html>

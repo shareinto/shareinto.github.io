@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>JVM-In-Docker:暴涨的内存 | shareinto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="引子最近将java应用迁移至docker容器时，发现了一个有趣的现象：在容器内运行一段时间以后，总是被内核OOM Killed.顾名思义，这是java进程内存使用超过了一定的限制。我们在启动容器的时候，限制其可用物理内存为1G，通过以下命令可查看内存限制 1docker inspect --format=&apos;&amp;#123;&amp;#123;.HostConfig.Memory&amp;#125;&amp;#125;&apos; $&amp;">
+<meta name="keywords" content="java,docker,linux">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM-In-Docker:暴涨的内存">
+<meta property="og:url" content="http://yoursite.com/2018/04/12/JVMInDockerOOM/index.html">
+<meta property="og:site_name" content="shareinto">
+<meta property="og:description" content="引子最近将java应用迁移至docker容器时，发现了一个有趣的现象：在容器内运行一段时间以后，总是被内核OOM Killed.顾名思义，这是java进程内存使用超过了一定的限制。我们在启动容器的时候，限制其可用物理内存为1G，通过以下命令可查看内存限制 1docker inspect --format=&apos;&amp;#123;&amp;#123;.HostConfig.Memory&amp;#125;&amp;#125;&apos; $&amp;">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/image/JVMInDocker.jpg">
+<meta property="og:updated_time" content="2019-02-03T09:20:19.094Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JVM-In-Docker:暴涨的内存">
+<meta name="twitter:description" content="引子最近将java应用迁移至docker容器时，发现了一个有趣的现象：在容器内运行一段时间以后，总是被内核OOM Killed.顾名思义，这是java进程内存使用超过了一定的限制。我们在启动容器的时候，限制其可用物理内存为1G，通过以下命令可查看内存限制 1docker inspect --format=&apos;&amp;#123;&amp;#123;.HostConfig.Memory&amp;#125;&amp;#125;&apos; $&amp;">
+<meta name="twitter:image" content="http://yoursite.com/image/JVMInDocker.jpg">
+  
+    <link rel="alternative" href="/atom.xml" title="shareinto" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+			<img lazy-src="/image/litten.png" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/">Dockerfun</a></h1>
+		</hgroup>
+
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						<div class="icon-wrap icon-link hide" data-idx="2">
+							<div class="loopback_l"></div>
+							<div class="loopback_r"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						<li>友情链接</li>
+						
+						
+						<li>关于我</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="#" title="github">github</a>
+					        
+								<a class="weibo" target="_blank" href="#" title="weibo">weibo</a>
+					        
+								<a class="rss" target="_blank" href="#" title="rss">rss</a>
+					        
+								<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/algorithm/" style="font-size: 10px;">algorithm</a> <a href="/tags/centos/" style="font-size: 17.5px;">centos</a> <a href="/tags/cpu/" style="font-size: 10px;">cpu</a> <a href="/tags/docker/" style="font-size: 20px;">docker</a> <a href="/tags/docker-compose/" style="font-size: 10px;">docker-compose</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/git-flow/" style="font-size: 10px;">git-flow</a> <a href="/tags/go/" style="font-size: 10px;">go</a> <a href="/tags/ios/" style="font-size: 10px;">ios</a> <a href="/tags/java/" style="font-size: 15px;">java</a> <a href="/tags/kernel/" style="font-size: 12.5px;">kernel</a> <a href="/tags/kubernetes/" style="font-size: 17.5px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 20px;">linux</a> <a href="/tags/performance/" style="font-size: 10px;">performance</a> <a href="/tags/thread/" style="font-size: 10px;">thread</a> <a href="/tags/tool/" style="font-size: 10px;">tool</a> <a href="/tags/操作系统/" style="font-size: 17.5px;">操作系统</a> <a href="/tags/效率/" style="font-size: 10px;">效率</a>
+					</div>
+				</section>
+				
+				
+				
+				<section class="switch-part switch-part3">
+					<div id="js-friends">
+					
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">奥巴马的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">卡卡的美丽传说</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">本泽马的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">吉格斯的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">习大大大不同</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">托蒂的博客</a>
+			        
+			        </div>
+				</section>
+				
+
+				
+				
+				<section class="switch-part switch-part4">
+				
+					<div id="js-aboutme">虽然不知道你在说什么，但是感觉好厉害的样子...</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide">Dockerfun</h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="/image/litten.png" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author">Dockerfun</h1>
+			</hgroup>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="#" title="github">github</a>
+			        
+						<a class="weibo" target="_blank" href="#" title="weibo">weibo</a>
+			        
+						<a class="rss" target="_blank" href="#" title="rss">rss</a>
+			        
+						<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-JVMInDockerOOM" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/04/12/JVMInDockerOOM/" class="article-date">
+  	<time datetime="2018-04-12T07:26:46.000Z" itemprop="datePublished">2018-04-12</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      JVM-In-Docker:暴涨的内存
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/">linux</a></li></ul>
+	</div>
+
+        
+	<div class="article-category tagcloud">
+	<a class="article-category-link" href="/categories/linux/">linux</a>
+	</div>
+
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="引子"><a href="#引子" class="headerlink" title="引子"></a>引子</h1><p>最近将java应用迁移至docker容器时，发现了一个有趣的现象：在容器内运行一段时间以后，总是被内核OOM Killed.顾名思义，这是java进程内存使用超过了一定的限制。<br>我们在启动容器的时候，限制其可用物理内存为1G，通过以下命令可查看内存限制</p>
+<figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker <span class="keyword">inspect</span> --<span class="keyword">format</span>='&#123;&#123;.HostConfig.<span class="keyword">Memory</span>&#125;&#125;' <span class="variable">$&#123;ContainerId&#125;</span></span><br></pre></td></tr></table></figure>
+<p>容器启动之后，我们能过grafana观察其内存变量，其内存使用在一小时之内就涨到了1G，再经过差不多一小时，容器就被OOM Killed了。<br>有趣的是，我们将该程序放到一以1G内存的虚拟机上去执行，其内存使用量一直保存在300M左右，自然也不会触发OOM Killed。<br>同样是1G内存的限制，为什么在容器内就挂了而在物理机或虚拟机上就正常了呢？看来这值得我们深挖一下。</p>
+<h1 id="CGroup"><a href="#CGroup" class="headerlink" title="CGroup"></a>CGroup</h1><p>首先，可以确定的是，容器之所以被杀死，是因为其内存超过了限制，那么这个限制，就是由Linux内核提供的CGroup来行限制的。<br>CGroup全名Control Group,其作用就是限制某一个或一组进程对系统资源的使用，在这里我们不对CGroup进行深入的探讨，有兴趣的同学可以<a href="https://www.kernel.org/doc/Documentation/cgroup-v1/cgroups.txt" target="_blank" rel="noopener">点击这里</a>进行深入学习。<br>在这里要提到的是，为什么上述容器在内存满了之后还要再过1小时才被Kill？这是因为我们的系统开启了交换内存的功能，而如果我们不对容器进行交换内存进行限制而只是限制物理内存，那么交换内存将会被设置为物理内存的2倍。（注意，这里交换内存包含了物理内存的容量）<br>所以当物理内存满了以后，容器还能继续跑是因为其还在涨的内存被交换出去了，还没到达交换内存的限制而已。</p>
+<h1 id="JVM-–Xmx"><a href="#JVM-–Xmx" class="headerlink" title="JVM –Xmx"></a>JVM –Xmx</h1><p>除非我们显示的设置JVM的最大堆大小，否则，JVM将会根据宿主机的RAM来推断这个值 – 默认情况下，这个值会被设置成宿主机内存的1/4。<br>我们可以能过<a href="http://matthewkwilliams.com/index.php/2015/10/02/looking-inside-a-jvm-xxprintflagsfinal/" target="_blank" rel="noopener">-XX:+PrintFlagsFinal</a>来查看这个值的大小</p>
+<p>笔者在一台64G内存的物理器上执行得到如下结果：<br><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="keyword">java </span>-XX:+PrintFlagsFinal -version<span class="title">|grep -i heapsize|</span>egrep <span class="string">'Initial|Max'</span></span><br><span class="line"><span class="keyword">java </span>version <span class="string">"1.7.0_67"</span></span><br><span class="line"><span class="keyword">Java(TM) </span>SE Runtime Environment (<span class="keyword">build </span><span class="number">1</span>.<span class="number">7</span>.<span class="number">0</span>_67-<span class="keyword">b01)</span></span><br><span class="line"><span class="keyword">Java </span>HotSpot(TM) <span class="number">64</span>-<span class="keyword">Bit </span>Server VM (<span class="keyword">build </span><span class="number">24</span>.<span class="number">65</span>-<span class="keyword">b04, </span>mixed mode)</span><br><span class="line">    uintx InitialHeapSize                          := <span class="number">1057991744</span>      &#123;product&#125;           </span><br><span class="line">    uintx MaxHeapSize                              := <span class="number">16928210944</span>     &#123;product&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可以看到 MaxHeapSize为 ~16G<br>我们在容器中执行看一下结果：<br><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --rm <span class="keyword">java </span><span class="keyword">java </span> -XX:+PrintFlagsFinal -version <span class="title">|grep -i heapsize |</span> egrep <span class="string">'Initial|Max'</span></span><br><span class="line"><span class="keyword">java </span>version <span class="string">"1.7.0_67"</span></span><br><span class="line"><span class="keyword">Java(TM) </span>SE Runtime Environment (<span class="keyword">build </span><span class="number">1</span>.<span class="number">7</span>.<span class="number">0</span>_67-<span class="keyword">b01)</span></span><br><span class="line"><span class="keyword">Java </span>HotSpot(TM) <span class="number">64</span>-<span class="keyword">Bit </span>Server VM (<span class="keyword">build </span><span class="number">24</span>.<span class="number">65</span>-<span class="keyword">b04, </span>mixed mode)</span><br><span class="line">    uintx InitialHeapSize                          := <span class="number">1057991744</span>      &#123;product&#125;           </span><br><span class="line">    uintx MaxHeapSize                              := <span class="number">16928210944</span>     &#123;product&#125;</span><br></pre></td></tr></table></figure></p>
+<p>一样的结果。现在我们限制一下容器的内存为 1G(-m 1024m)<br><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -m <span class="number">1024</span>m --rm <span class="keyword">java </span><span class="keyword">java </span> -XX:+PrintFlagsFinal -version <span class="title">|grep -i heapsize |</span> egrep <span class="string">'Initial|Max'</span></span><br><span class="line"><span class="keyword">java </span>version <span class="string">"1.7.0_67"</span></span><br><span class="line"><span class="keyword">Java(TM) </span>SE Runtime Environment (<span class="keyword">build </span><span class="number">1</span>.<span class="number">7</span>.<span class="number">0</span>_67-<span class="keyword">b01)</span></span><br><span class="line"><span class="keyword">Java </span>HotSpot(TM) <span class="number">64</span>-<span class="keyword">Bit </span>Server VM (<span class="keyword">build </span><span class="number">24</span>.<span class="number">65</span>-<span class="keyword">b04, </span>mixed mode)</span><br><span class="line">    uintx InitialHeapSize                          := <span class="number">1057991744</span>      &#123;product&#125;           </span><br><span class="line">    uintx MaxHeapSize                              := <span class="number">16928210944</span>     &#123;product&#125;</span><br></pre></td></tr></table></figure></p>
+<p>结果还是一样。</p>
+<h1 id="Memory-Inside-Linux-Containers"><a href="#Memory-Inside-Linux-Containers" class="headerlink" title="Memory Inside Linux Containers"></a>Memory Inside Linux Containers</h1><p>我们用free来看一下内存的情况<br>在宿主机上:<br><figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ free -m</span><br><span class="line">             total       used       free     shared    buffers     cached</span><br><span class="line">Mem:        <span class="number"> 64574 </span>    <span class="number"> 62979 </span>     <span class="number"> 1594 </span>        <span class="number"> 0 </span>      <span class="number"> 864 </span>     49236</span><br><span class="line">-/+ buffers/cache:     <span class="number"> 12878 </span>     51695</span><br><span class="line">Swap:        <span class="number"> 4095 </span>      <span class="number"> 448 </span>      3647</span><br></pre></td></tr></table></figure></p>
+<p>在容器内:<br><figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -1024 --rm busybox free -m</span><br><span class="line">             total       used       free     shared    buffers     cached</span><br><span class="line">Mem:        <span class="number"> 64574 </span>    <span class="number"> 62979 </span>     <span class="number"> 1594 </span>        <span class="number"> 0 </span>      <span class="number"> 864 </span>     49236</span><br><span class="line">-/+ buffers/cache:     <span class="number"> 12878 </span>     51695</span><br><span class="line">Swap:        <span class="number"> 4095 </span>      <span class="number"> 448 </span>      3647</span><br></pre></td></tr></table></figure></p>
+<p>还是一模一样，为什么会出现这样的情况？这就等于我们在容器内无法读到容器的限制内存？<br>关于这个问题，这里有一篇文章（<a href="https://fabiokung.com/2014/03/13/memory-inside-linux-containers/" target="_blank" rel="noopener">Memory inside Linux containers</a>）解释得很详细,这里我们作一个简单的总结：<br>意思是我们并不是没办法读取容器内存的，而是读的地方不对。早期的统计工具，例如top,free（包括jvm）等都是从/proc目录下读取系统信息的，而在容器内，容器的内存限制并不是在/proc下面，而要从cgroup读取（docker内的cgroup目录在/sys/fs/cgroup),<br>而/proc目录，到目前为止，docker官方并没有对其进行容器化处理，所以从这里读取的信息都还是宿主机的信息，这也就很好解释我们上面看到的实验结果。</p>
+<h2 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h2><ol>
+<li>一些人认为可以提供一个用户态的库供大家调用，这种方案只适合新的程序，那些旧的程序如top,free甚至jvm都无法使用这个方案了</li>
+<li>另一种方案是在用户态重写/proc/meminfo，例如<a href="https://github.com/libfuse/libfuse" target="_blank" rel="noopener">FUSE</a>就可以实现这种功能。但这种方案的问题是要在宿主机上运行这个用户态的服务，如果这个服务挂了该如何处理？总之，这种方案可以解决问题，但并不是十分完美</li>
+<li>直接内核支持，但是这种又会影响到那些没有容器化的系统，所以除非你自定义内核，否则不可能被合并到主流内核版本中。</li>
+</ol>
+<h2 id="JVM的解决"><a href="#JVM的解决" class="headerlink" title="JVM的解决"></a>JVM的解决</h2><p>知道了问题产生的原因，那么我们解决JVM在容器中的问题其实就很简单了：<br>我们结合容器的限制内存，给JVM设置一下最大堆参数就可以了<br><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -m <span class="number">1024</span>m --rm <span class="keyword">java </span><span class="keyword">java </span>-Xmx256m -Xms16m  -XX:+PrintFlagsFinal -version<span class="title">|grep -i heapsize|</span>egrep <span class="string">'Initial|Max'</span>     </span><br><span class="line"><span class="keyword">java </span>version <span class="string">"1.7.0_67"</span></span><br><span class="line"><span class="keyword">Java(TM) </span>SE Runtime Environment (<span class="keyword">build </span><span class="number">1</span>.<span class="number">7</span>.<span class="number">0</span>_67-<span class="keyword">b01)</span></span><br><span class="line"><span class="keyword">Java </span>HotSpot(TM) <span class="number">64</span>-<span class="keyword">Bit </span>Server VM (<span class="keyword">build </span><span class="number">24</span>.<span class="number">65</span>-<span class="keyword">b04, </span>mixed mode)</span><br><span class="line">    uintx InitialHeapSize                          := <span class="number">16777216</span>        &#123;product&#125;           </span><br><span class="line">    uintx MaxHeapSize                              := <span class="number">268435456</span>       &#123;product&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可以看到MaxHeapSize=256m,InitialHeapSize=16m</p>
+<p>笔者最后给最开始被OOM Killed的Java程序加上最大堆限制之后，就再也没有出现被Kill的情况，附上内存图：<br><img src="/image/JVMInDocker.jpg" alt=""></p>
+<p>（全文完）</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/09/17/centos7-kernel-update/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          centos7内核升级
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/08/10/multiple-threads/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">多线程一定比单线程快吗</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">分享到：</span>
+		<a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<a class="jiathis_button_tumblr"></a>
+		<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
+
+
+
+<div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="JVMInDockerOOM" data-title="JVM-In-Docker:暴涨的内存" data-url="http://yoursite.com/2018/04/12/JVMInDockerOOM/"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"true"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2019 Dockerfun
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: true,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+<script src="http://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  </div>
+</body>
+</html>

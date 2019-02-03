@@ -13,15 +13,15 @@
 <meta property="og:site_name" content="shareinto">
 <meta property="og:description" content="go对我而言其最令人激动的地方就是接口的设计，例如静态类型、编译时检查。如果非要让我将go的一个特性运用到其它语言的设计当中，那一定非接口莫属。 这篇文章描述了我对接口值在“ GC ”的编译器的实现。 Ian Lance Taylor已经写了两篇关于接口值在gccgo中如何实现的文章。这篇文章与其大同小异：最大的区别是，本文有图片。 Usgaego接口的使用让你感觉像是在用python这样纯粹的动">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://7xlovv.com1.z0.glb.clouddn.com/gointer1.png">
-<meta property="og:image" content="http://7xlovv.com1.z0.glb.clouddn.com/gointer2.png">
-<meta property="og:image" content="http://7xlovv.com1.z0.glb.clouddn.com/gointer3.png">
-<meta property="og:image" content="http://7xlovv.com1.z0.glb.clouddn.com/gointer4.png">
-<meta property="og:updated_time" content="2018-09-17T06:24:56.700Z">
+<meta property="og:image" content="http://yoursite.com/image/gointer1.png">
+<meta property="og:image" content="http://yoursite.com/image/gointer2.png">
+<meta property="og:image" content="http://yoursite.com/image/gointer3.png">
+<meta property="og:image" content="http://yoursite.com/image/gointer4.png">
+<meta property="og:updated_time" content="2019-02-03T09:20:19.071Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Go Data Structures Interfaces">
 <meta name="twitter:description" content="go对我而言其最令人激动的地方就是接口的设计，例如静态类型、编译时检查。如果非要让我将go的一个特性运用到其它语言的设计当中，那一定非接口莫属。 这篇文章描述了我对接口值在“ GC ”的编译器的实现。 Ian Lance Taylor已经写了两篇关于接口值在gccgo中如何实现的文章。这篇文章与其大同小异：最大的区别是，本文有图片。 Usgaego接口的使用让你感觉像是在用python这样纯粹的动">
-<meta name="twitter:image" content="http://7xlovv.com1.z0.glb.clouddn.com/gointer1.png">
+<meta name="twitter:image" content="http://yoursite.com/image/gointer1.png">
   
     <link rel="alternative" href="/atom.xml" title="shareinto" type="application/atom+xml">
   
@@ -251,9 +251,9 @@
 <li>每次调用都进行方法地址查询的动态语言（如Smalltalk和它的众多模仿者、javascript和python等，有的会通过缓存提高它调用的效率）。<br>Go则位于两者的中间，它拥有方法表，但却是在运行时计算它们。我不知道go是不是第一个使用该技术的语言，但这种方式肯定是不常见的。</li>
 </ul>
 <p>举个例子,一个Binary类型的值是一个64位整型，它由两个32位的字组成（假设我们现在使用的是32位的机器）</p>
-<p><img src="http://7xlovv.com1.z0.glb.clouddn.com/gointer1.png" alt=""></p>
+<p><img src="/image/gointer1.png" alt=""></p>
 <p>Interface由两个字长组成，其中一个存储指向接口类型表的指针，另一个存储指向数据的指针。如果将b赋值给一个Stringer类型的接口变量，其内存结构如下图所示</p>
-<p><img src="http://7xlovv.com1.z0.glb.clouddn.com/gointer2.png" alt=""></p>
+<p><img src="/image/gointer2.png" alt=""></p>
 <p>(接口中存储的指针对程序是不可见的，它不会直接暴露给用户)</p>
 <p>第一个字节中的指针指向一个名字叫作itable的内存块（在C中叫作Itab）。itable头部存储了一些与类型相关的元数据，然后才是函数指针列表。itable对应的是接口类型，而不是动态类型。以我们的例子来讲，Stringer的itable保存了类型Binary的元数据，然后才是那些满足Stringer接口的函数指针列表，在这个例子中就只有一个String方法，而Binary的其它方法则不会在itable中出现。</p>
 <p>第二个字节中的指针则指向b的一个副本。下面这个赋值语句 var s Stringer = b 将会申请一个b的副本，并将第二个字节中的指针指向该副本，其原理和 var c unit64 = b 一样。当我们改变b的值的时候，s和c的值将不会被改变。在接口中存储的值可能是任意大小的，但是接口本身却只有一个字来存储数据，所以程序会在堆上申请一组内存来存储该数据，然后再将第二个字上的指针指向该内存组。（如果数据的大小刚才等于或小于一个字，我们在后面会讨论该情况）</p>
@@ -266,12 +266,12 @@
 <ul>
 <li>如果接口类型是interface{}的情况下，也就是没有任何方法的情况下，itable也就没有存在的必要。在这种情况下，第一个字就可以存储实际类型了：</li>
 </ul>
-<p><img src="http://7xlovv.com1.z0.glb.clouddn.com/gointer3.png" alt=""></p>
+<p><img src="/image/gointer3.png" alt=""></p>
 <p>一个接口有没有方法go将用一个静态属性表示，因此编译器知道第一个字表示的是哪一种情况。</p>
 <ul>
 <li>如果接口所关联的类型的值大小刚好是一个机器字长，那就没有必要进行堆内存的申请了。如果我们像Binary一样定义一个Binary32，将uint32作为它的底层类型，那么它的值就可以直接存储在第二个字中：</li>
 </ul>
-<p><img src="http://7xlovv.com1.z0.glb.clouddn.com/gointer4.png" alt=""></p>
+<p><img src="/image/gointer4.png" alt=""></p>
 <p>在这种情况下，String的函数签名将变成(Binary) string,而不是原来的(*Binary) string。</p>
 <p>因此，当给一个空接口赋值一个大小为一个机器字长的值（或更小）时，它将同时采用上面这两种优化方式。</p>
 
@@ -283,7 +283,7 @@
     
 <nav id="article-nav">
   
-    <a href="/2016/03/09/docker-compose开机自动重启/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2016/03/09/docker-compose-autostart/" id="article-nav-newer" class="article-nav-link-wrap">
       <strong class="article-nav-caption"><</strong>
       <div class="article-nav-title">
         
@@ -293,7 +293,7 @@
     </a>
   
   
-    <a href="/2016/03/03/docker-开启远程访问/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2016/03/03/docker-remote-access/" id="article-nav-older" class="article-nav-link-wrap">
       <div class="article-nav-title">docker-开启远程访问</div>
       <strong class="article-nav-caption">></strong>
     </a>

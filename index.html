@@ -190,10 +190,10 @@
 </nav>
       <div class="body-wrap">
   
-    <article id="post-谁是Docker容器的init进程" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-docker-init(1)" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2019/01/30/谁是Docker容器的init进程/" class="article-date">
+      <a href="/2019/01/30/docker-init(1)/" class="article-date">
   	<time datetime="2019-01-30T15:06:29.000Z" itemprop="datePublished">2019-01-30</time>
 </a>
     </div>
@@ -207,7 +207,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2019/01/30/谁是Docker容器的init进程/">谁是Docker容器的init(1)进程</a>
+      <a class="article-title" href="/2019/01/30/docker-init(1)/">谁是Docker容器的init(1)进程</a>
     </h1>
   
 
@@ -283,7 +283,7 @@
 <p>至此，我们可以大胆的猜想，这个PID 0应该就是这个docker-containerd-shim</p>
 </blockquote>
 <h2 id="Docker-1-11版本后的架构"><a href="#Docker-1-11版本后的架构" class="headerlink" title="Docker 1.11版本后的架构"></a>Docker 1.11版本后的架构</h2><blockquote>
-<p><img src="/2019/01/30/谁是Docker容器的init进程/5e0ea99909d34a2df356ba6c6c426f8c" alt="Docker"><br>从架构图中我们可以看到shim进程下还有一个runC进程，但我们在进程树中并没有发现runC这个进程。</p>
+<p><img src="image/5e0ea99909d34a2df356ba6c6c426f8c" alt="Docker"><br>从架构图中我们可以看到shim进程下还有一个runC进程，但我们在进程树中并没有发现runC这个进程。</p>
 </blockquote>
 <h2 id="runC"><a href="#runC" class="headerlink" title="runC"></a>runC</h2><blockquote>
 <p>runC是OCI标准的一个参考实现，而OCI Open Container Initiative，是由多家公司共同成立的项目，并由linux基金会进行管理，致力于container runtime的标准的制定和runc的开发等工作。runc，是对于OCI标准的一个参考实现，是一个可以用于创建和运行容器的CLI(command-line interface)工具。runc直接与容器所依赖的cgroup/linux kernel等进行交互，负责为容器配置cgroup/namespace等启动容器所需的环境，创建启动容器的相关进程。</p>
@@ -475,10 +475,10 @@
 
 
   
-    <article id="post-JVMInDocker暴涨的内存" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-JVMInDockerOOM" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2018/04/12/JVMInDocker暴涨的内存/" class="article-date">
+      <a href="/2018/04/12/JVMInDockerOOM/" class="article-date">
   	<time datetime="2018-04-12T07:26:46.000Z" itemprop="datePublished">2018-04-12</time>
 </a>
     </div>
@@ -492,7 +492,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/04/12/JVMInDocker暴涨的内存/">JVM-In-Docker:暴涨的内存</a>
+      <a class="article-title" href="/2018/04/12/JVMInDockerOOM/">JVM-In-Docker:暴涨的内存</a>
     </h1>
   
 
@@ -520,7 +520,7 @@
 </ol>
 <h2 id="JVM的解决"><a href="#JVM的解决" class="headerlink" title="JVM的解决"></a>JVM的解决</h2><p>知道了问题产生的原因，那么我们解决JVM在容器中的问题其实就很简单了：<br>我们结合容器的限制内存，给JVM设置一下最大堆参数就可以了<br><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -m <span class="number">1024</span>m --rm <span class="keyword">java </span><span class="keyword">java </span>-Xmx256m -Xms16m  -XX:+PrintFlagsFinal -version<span class="title">|grep -i heapsize|</span>egrep <span class="string">'Initial|Max'</span>     </span><br><span class="line"><span class="keyword">java </span>version <span class="string">"1.7.0_67"</span></span><br><span class="line"><span class="keyword">Java(TM) </span>SE Runtime Environment (<span class="keyword">build </span><span class="number">1</span>.<span class="number">7</span>.<span class="number">0</span>_67-<span class="keyword">b01)</span></span><br><span class="line"><span class="keyword">Java </span>HotSpot(TM) <span class="number">64</span>-<span class="keyword">Bit </span>Server VM (<span class="keyword">build </span><span class="number">24</span>.<span class="number">65</span>-<span class="keyword">b04, </span>mixed mode)</span><br><span class="line">    uintx InitialHeapSize                          := <span class="number">16777216</span>        &#123;product&#125;           </span><br><span class="line">    uintx MaxHeapSize                              := <span class="number">268435456</span>       &#123;product&#125;</span><br></pre></td></tr></table></figure></p>
 <p>可以看到MaxHeapSize=256m,InitialHeapSize=16m</p>
-<p>笔者最后给最开始被OOM Killed的Java程序加上最大堆限制之后，就再也没有出现被Kill的情况，附上内存图：<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/JVMInDocker.jpg" alt=""></p>
+<p>笔者最后给最开始被OOM Killed的Java程序加上最大堆限制之后，就再也没有出现被Kill的情况，附上内存图：<br><img src="/image/JVMInDocker.jpg" alt=""></p>
 <p>（全文完）</p>
 
       
@@ -554,10 +554,10 @@
 
 
   
-    <article id="post-多线程一定比单线程快吗" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-multiple-threads" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2017/08/10/多线程一定比单线程快吗/" class="article-date">
+      <a href="/2017/08/10/multiple-threads/" class="article-date">
   	<time datetime="2017-08-10T07:27:07.000Z" itemprop="datePublished">2017-08-10</time>
 </a>
     </div>
@@ -571,7 +571,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/10/多线程一定比单线程快吗/">多线程一定比单线程快吗</a>
+      <a class="article-title" href="/2017/08/10/multiple-threads/">多线程一定比单线程快吗</a>
     </h1>
   
 
@@ -671,10 +671,10 @@
 
 
   
-    <article id="post-为Docker分配独立IP" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-docker-ip" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2017/07/10/为Docker分配独立IP/" class="article-date">
+      <a href="/2017/07/10/docker-ip/" class="article-date">
   	<time datetime="2017-07-10T09:31:36.000Z" itemprop="datePublished">2017-07-10</time>
 </a>
     </div>
@@ -688,7 +688,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/07/10/为Docker分配独立IP/">为Docker分配独立IP</a>
+      <a class="article-title" href="/2017/07/10/docker-ip/">为Docker分配独立IP</a>
     </h1>
   
 
@@ -714,9 +714,9 @@
 <li>container:<br>这个模式指定新创建的容器和已经存在的一个容器共享一个network Namespace，而不是和宿主机共享。新创建的容器不会创建自己的网卡，配置自己的 IP，而是和一个指定的容器共享 IP、端口范围等。同样，两个容器除了网络方面，其他的如文件系统、进程列表等还是隔离的。两个容器的进程可以通过 lo 网卡设备通信。</li>
 <li>bridge:<br>bridge模式是docker的默认网络模式。当Docker进程启动时，会在主机上创建一个名为docker0的虚拟网桥，此主机上启动的Docker容器会连接到这个虚拟网桥上。虚拟网桥的工作方式和物理交换机类似，这样主机上的所有容器就通过交换机连在了一个二层网络中。从docker0子网中分配一个IP给容器使用，并设置docker0的IP地址为容器的默认网关。在主机上创建一对虚拟网卡veth pair设备，Docker将veth pair设备的一端放在新创建的容器中，并命名为eth0（容器的网卡），另一端放在主机中，以vethxxx这样类似的名字命名，并将这个网络设备加入到docker0网桥中。</li>
 </ol>
-<h1 id="bridge网络模式"><a href="#bridge网络模式" class="headerlink" title="bridge网络模式"></a>bridge网络模式</h1><p>作为docker默认的网络模式，是最复杂也是运用最广的模式。我们先来看一下，在这种模式下，它的网格拓扑结构。<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/docker-bridge.png" alt="docker-bridge"><br>这里首先要讲解一下linux下虚拟网桥的概念：</p>
+<h1 id="bridge网络模式"><a href="#bridge网络模式" class="headerlink" title="bridge网络模式"></a>bridge网络模式</h1><p>作为docker默认的网络模式，是最复杂也是运用最广的模式。我们先来看一下，在这种模式下，它的网格拓扑结构。<br><img src="/image/docker-bridge.png" alt="docker-bridge"><br>这里首先要讲解一下linux下虚拟网桥的概念：</p>
 <ul>
-<li><p>虚拟网桥：<br>首先，它的主体部分是一个二层交换机，但是奇怪的是，我们在宿主机上查看linux网络设备docker0的时候，它会有一个ip地址（作者主机上的docker0）<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/docker0.png" alt="docker0"><br>稍微有点网络常识的人会知道，交换机是二层设备，是没有ip地址的。那么这个ip地址又是怎么来的呢。<br>我们可以思考一下，假设你买了一个物理交换机回来以后，我们的主机要如何使用这个交换机？答案很简单，用一根网线将主机上的某一块网卡接到交换机的一个端口上面！是的，那么docker0设备上的ip实际上就是主机上连接交换机网卡的ip。<br>所以，linux的虚拟网桥实际上包括三部分：</p>
+<li><p>虚拟网桥：<br>首先，它的主体部分是一个二层交换机，但是奇怪的是，我们在宿主机上查看linux网络设备docker0的时候，它会有一个ip地址（作者主机上的docker0）<br><img src="/image/docker0.png" alt="docker0"><br>稍微有点网络常识的人会知道，交换机是二层设备，是没有ip地址的。那么这个ip地址又是怎么来的呢。<br>我们可以思考一下，假设你买了一个物理交换机回来以后，我们的主机要如何使用这个交换机？答案很简单，用一根网线将主机上的某一块网卡接到交换机的一个端口上面！是的，那么docker0设备上的ip实际上就是主机上连接交换机网卡的ip。<br>所以，linux的虚拟网桥实际上包括三部分：</p>
 <ul>
 <li>一个L2的交换机</li>
 <li>一个主机的网卡</li>
@@ -727,7 +727,7 @@
 <ul>
 <li>一个安装在主机上的网卡</li>
 <li>另一个安装在主机上的网卡</li>
-<li>一根连接这两个网卡的网线<br>大家可能会觉得奇怪，这样的网络设备有什么用，数据从一个网卡出去，再从另外一块网卡进来？其实，这种网络设备有一个特点，就是两块网卡可以分别处于不同的network namespace。<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/veth-pair.png" alt="veth-pair"><br>docker正是利用了这种特性，将其中的一块网卡添加到容器内部，另外一块留在宿主机上面，大家通过ifconfig命令在宿主机可以看到vethxxx这样的网络设备，但是这样的网络设备它是没有ip地址的。<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/vethxxx.png" alt="vethxxx"><br>这又是为什么呢？这要回到上面提到的虚拟网桥。实际上这块网卡被添加到了docker0的交换机设备上，变成了该交换机上的一个端口，交换机的端口没有ip也就很正常了。<br>我们可以通过brctl命令，将一个物理设备添加到一个虚拟网桥上面：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># brctl addif docker0 vethae36b9b</span></span><br></pre></td></tr></table></figure>
+<li>一根连接这两个网卡的网线<br>大家可能会觉得奇怪，这样的网络设备有什么用，数据从一个网卡出去，再从另外一块网卡进来？其实，这种网络设备有一个特点，就是两块网卡可以分别处于不同的network namespace。<br><img src="/image/veth-pair.png" alt="veth-pair"><br>docker正是利用了这种特性，将其中的一块网卡添加到容器内部，另外一块留在宿主机上面，大家通过ifconfig命令在宿主机可以看到vethxxx这样的网络设备，但是这样的网络设备它是没有ip地址的。<br><img src="/image/vethxxx.png" alt="vethxxx"><br>这又是为什么呢？这要回到上面提到的虚拟网桥。实际上这块网卡被添加到了docker0的交换机设备上，变成了该交换机上的一个端口，交换机的端口没有ip也就很正常了。<br>我们可以通过brctl命令，将一个物理设备添加到一个虚拟网桥上面：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># brctl addif docker0 vethae36b9b</span></span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 <p>这个命令的意思是将vethae36b9b这个网络设备添加到docker0这个网桥上面。<br>还可以查看已添加到网桥上面的设备</p>
@@ -735,7 +735,7 @@
 </li>
 </ul>
 <p>到此，我们来理解bridge网络模式的拓扑结构就很简单了，这是不是非常像我们家庭网络的结构：一个个容器代表了家里的一台台计算机，而宿主机这时候变成了连接外网的路由器了。在这个子网内部的各个容器之间是可以互相访问的，容器可以访问外部网络，而外部网络要访问内部容器，就必须通过nat端口映射才行。</p>
-<h1 id="给docker容器分配一个和宿主机处于同一网段的ip"><a href="#给docker容器分配一个和宿主机处于同一网段的ip" class="headerlink" title="给docker容器分配一个和宿主机处于同一网段的ip"></a>给docker容器分配一个和宿主机处于同一网段的ip</h1><p>bridge网络有一个问题，就是多个容器要同时对外暴露服务时，会竞争宿主机上面的端口，导致端口资紧张的情况发生。那么我们能不能给docker分配一个和宿主机处于同一个网段的ip，这样，外部网络就可以直接访问该容器了呢?答案当然是可以，我们现在就利用上面的知识，来更改一下docker的网络拓扑结构。<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/docker-bridge2.png" alt="docker-bridge2"><br>这里我们为了避免连接不上宿主机，另外创建一个虚拟网桥br0<br>em1是宿主机上的网卡，它的ip为172.24.133.39/24。我们的做法很简单，将em1添加到docker0网桥上，然后将ip（172.24.133.39）设置给br0设备。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># brctl addbr br0</span></span><br><span class="line"><span class="comment"># brctl stp br0 off</span></span><br><span class="line"><span class="comment"># ifconfig br0 172.24.133.39/24 up</span></span><br><span class="line"><span class="comment"># brctl addif br0 em1</span></span><br><span class="line"><span class="comment"># ifconfig em1 0.0.0.0</span></span><br><span class="line"><span class="comment"># route add default gw 172.24.133.254 dev br0</span></span><br></pre></td></tr></table></figure></p>
+<h1 id="给docker容器分配一个和宿主机处于同一网段的ip"><a href="#给docker容器分配一个和宿主机处于同一网段的ip" class="headerlink" title="给docker容器分配一个和宿主机处于同一网段的ip"></a>给docker容器分配一个和宿主机处于同一网段的ip</h1><p>bridge网络有一个问题，就是多个容器要同时对外暴露服务时，会竞争宿主机上面的端口，导致端口资紧张的情况发生。那么我们能不能给docker分配一个和宿主机处于同一个网段的ip，这样，外部网络就可以直接访问该容器了呢?答案当然是可以，我们现在就利用上面的知识，来更改一下docker的网络拓扑结构。<br><img src="/image/docker-bridge2.png" alt="docker-bridge2"><br>这里我们为了避免连接不上宿主机，另外创建一个虚拟网桥br0<br>em1是宿主机上的网卡，它的ip为172.24.133.39/24。我们的做法很简单，将em1添加到docker0网桥上，然后将ip（172.24.133.39）设置给br0设备。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># brctl addbr br0</span></span><br><span class="line"><span class="comment"># brctl stp br0 off</span></span><br><span class="line"><span class="comment"># ifconfig br0 172.24.133.39/24 up</span></span><br><span class="line"><span class="comment"># brctl addif br0 em1</span></span><br><span class="line"><span class="comment"># ifconfig em1 0.0.0.0</span></span><br><span class="line"><span class="comment"># route add default gw 172.24.133.254 dev br0</span></span><br></pre></td></tr></table></figure></p>
 <p>创建一对veth pair,并将其中一个添加到br0中,另一个设置给容器（docker的network namespace的名称就是容器id)</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ip link add peerA type veth peer name peerB </span></span><br><span class="line"><span class="comment"># brctl addif br0 peerA</span></span><br><span class="line"><span class="comment"># ip link set peerA up</span></span><br><span class="line"><span class="comment"># ip link set peerB netns $&#123;container-pid&#125;</span></span><br></pre></td></tr></table></figure>
 <p>然后，进入到容器中，将eth1的ip设置为172.24.133.253<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ip link set dev peerB name eth1 </span></span><br><span class="line"><span class="comment"># ip link set eth1 up</span></span><br><span class="line"><span class="comment"># ip addr add 172.24.133.253/24 dev eth1</span></span><br><span class="line"><span class="comment"># route add default gw 172.24.133.254 dev eth1</span></span><br></pre></td></tr></table></figure></p>
@@ -772,10 +772,10 @@
 
 
   
-    <article id="post-基于kubernetes的canary-deployment" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-blue-green-deploy" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2017/04/24/基于kubernetes的canary-deployment/" class="article-date">
+      <a href="/2017/04/24/blue-green-deploy/" class="article-date">
   	<time datetime="2017-04-24T10:12:40.000Z" itemprop="datePublished">2017-04-24</time>
 </a>
     </div>
@@ -789,7 +789,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/04/24/基于kubernetes的canary-deployment/">基于Ingress的BlueGreenDeployment</a>
+      <a class="article-title" href="/2017/04/24/blue-green-deploy/">基于Ingress的BlueGreenDeployment</a>
     </h1>
   
 
@@ -800,7 +800,7 @@
       
         <h2 id="Blue-Green-Deployment"><a href="#Blue-Green-Deployment" class="headerlink" title="Blue-Green Deployment"></a>Blue-Green Deployment</h2><p><a href="https://martinfowler.com/bliki/BlueGreenDeployment.html" target="_blank" rel="noopener">Blue-Green</a>是一种无宕机的升级技术，和滚动升级不同，蓝绿部署是启动一个运行着新版应用的副本的集群，旧版的应用依旧提供服务，直到新的应用真正启动并配置好负载均衡器。这种方式的一个好处是任何时候都只有一个版本的应用在运行，减少了处理多个并发版本带来的复杂性。当副本个数很少时，蓝绿部署也能很好地工作。</p>
 <p>在传统的发布中，新版本的服务只有上线以后（此时新版本的软件已经暴露给了用户）测试人员才能够进行线上测试，实际上这个时候的测试的意义并不是太大，因为如果存在bug的话，那么这个bug已经暴露给了最终用户，要解决bug要么继续发布更新的版本，要么进行线上回滚，这对于用户来说是一种非常不友好的体验，对于开发和测试人员也产生了一定的压力。</p>
-<p>蓝绿发布将新版本的服务发布到一个新的生产环境中，该环境和旧版本的环境完全一致，唯一的区别是最终用户是访问不到新版本的服务，这时候只有测试人员可以访问。这样，就有办法保证测试人员有足够的时间进行系统测试。<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/canary-release-1.png" alt=""><br>当测试人员完成测试后，再将流量切换至新版本服务。<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/canary-release-3.png" alt=""><br>切换成功以后，再将旧版本的环境进行删除。</p>
+<p>蓝绿发布将新版本的服务发布到一个新的生产环境中，该环境和旧版本的环境完全一致，唯一的区别是最终用户是访问不到新版本的服务，这时候只有测试人员可以访问。这样，就有办法保证测试人员有足够的时间进行系统测试。<br><img src="/image/canary-release-1.png" alt=""><br>当测试人员完成测试后，再将流量切换至新版本服务。<br><img src="/image/canary-release-3.png" alt=""><br>切换成功以后，再将旧版本的环境进行删除。</p>
 <h2 id="在kubernetes中实现蓝绿发布"><a href="#在kubernetes中实现蓝绿发布" class="headerlink" title="在kubernetes中实现蓝绿发布"></a>在kubernetes中实现蓝绿发布</h2><p>kubernetes本身并不提供蓝绿发布的功能，包括在deployment中，它的发布策略只包含滚动发布（rolling update）和重建发布(recreate)。要实现蓝绿发布，我们必须将其业务提取到自己的管理层来。</p>
 <h3 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h3><ol>
 <li>一个kubernetes集群环境</li>
@@ -872,10 +872,10 @@
 
 
   
-    <article id="post-KubernetesIngress（1）" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-KubernetesIngress(2)" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2017/04/13/KubernetesIngress（1）/" class="article-date">
+      <a href="/2017/04/13/KubernetesIngress(2)/" class="article-date">
   	<time datetime="2017-04-13T12:48:38.000Z" itemprop="datePublished">2017-04-13</time>
 </a>
     </div>
@@ -889,93 +889,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/04/13/KubernetesIngress（1）/">Kubernetes Ingress（1）简介</a>
-    </h1>
-  
-
-      </header>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="为什么选择Ingress"><a href="#为什么选择Ingress" class="headerlink" title="为什么选择Ingress"></a>为什么选择Ingress</h2><p>kubernets的service和pod在集群内部有着集群网络统一管理和分配的ip地址，但是这些ip地址只有在集群内部可见，任何集群外部的节点都无法直接访问内部节点。显然，我们必须通过其它的渠道来访问。</p>
-<p>目前，kubernetes提供了三种访问的方式：</p>
-<ul>
-<li>NodePort</li>
-<li>LoadBalance</li>
-<li>Ingress</li>
-</ul>
-<p>其中，NodePort对于主机端口资原的要求非常高，无法应用于大规模的企业私有云，而LoadBalance方式只有在像GCE、Asure等等这些云服务提供商上面才能使用。因此，对于私有云可以采用的最佳入口方式非Ingress莫属。</p>
-<h2 id="什么是Ingress"><a href="#什么是Ingress" class="headerlink" title="什么是Ingress"></a>什么是Ingress</h2><p>Ingress是一系列允许入站链接到达集群内部服务的规则的集合。<br>未使用Ingress，外部网络无法到达内部服务<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">  internet</span><br><span class="line">      |</span><br><span class="line">------------</span><br><span class="line">[ Services ]</span><br></pre></td></tr></table></figure></p>
-<p>Ingress的加入则使外部网络有了访问内部服务的途径<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> internet</span><br><span class="line">     |</span><br><span class="line">[ Ingress ]</span><br><span class="line">--|-----|--</span><br><span class="line">[ Services ]</span><br></pre></td></tr></table></figure></p>
-<p>Ingress可以为服务配置一系列的访问域名，负载均衡策略，SSL等等。</p>
-<h2 id="Ingress-Resource"><a href="#Ingress-Resource" class="headerlink" title="Ingress Resource"></a>Ingress Resource</h2><p>Ingress和Pod、Servce等等类似，被定义为kubernetes的一种资源<br>它的一个简单的示例如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: extensions/v1beta1</span><br><span class="line">kind: Ingress</span><br><span class="line">metadata:</span><br><span class="line">  name: test-ingress</span><br><span class="line">spec:</span><br><span class="line">  rules:</span><br><span class="line">  - host: foo.bar.com</span><br><span class="line">  - http:</span><br><span class="line">      paths:</span><br><span class="line">      - path: /testpath</span><br><span class="line">        backend:</span><br><span class="line">          serviceName: test</span><br><span class="line">          servicePort: 80</span><br></pre></td></tr></table></figure></p>
-<p>这段Ingress的描述的意思是：将host为foo.bar.com且路径为/testpath的访问引导到test:80这个服务上面。</p>
-<h2 id="Ingress-Controller"><a href="#Ingress-Controller" class="headerlink" title="Ingress Controller"></a>Ingress Controller</h2><p>本质上说Ingress只是存储在etcd上面一些数据，我们可以能过kubernetes的apiserver添加删除和修改ingress资源。那么真正让整个Ingress运转起来的一个重要组件是Ingress Controller。<br>然而，这个Controller并不像其它Controller一样作为kubernetes的核心组件在master启动的时候一起启动起来，它实际上是kubernetes的一个扩展，我们必须选择一个适合自己的Ingress Controller，或者自己去实现一个。</p>
-<p>对于Ingress Controller官方的定义是这样子的：</p>
-<blockquote>
-<p>An Ingress Controller is a daemon, deployed as a Kubernetes Pod, that watches the apiserver’s /ingresses endpoint for updates to the Ingress resource. Its job is to satisfy requests for ingress.</p>
-</blockquote>
-<p>Ingress Controller作为一个守户进程，通过监听apiserver的ingresses资源变化，并且根据其指定的规则建立起外部网络访问内部服务的通道。对于官方描述的 deployed as a Kubernetes Pod，实际上是没办法运用到生产环境当中去的，这个我们在后面会提到这个问题，并且会有相应的解决方案。</p>
-<h2 id="Ingress-Controller的架构"><a href="#Ingress-Controller的架构" class="headerlink" title="Ingress Controller的架构"></a>Ingress Controller的架构</h2><p><img src="http://7xlovv.com1.z0.glb.clouddn.com/ingress-controller.png" alt="ingress-controller"></p>
-<p>上图展示了一个nginx ingress controller的部署架构图，ingress controller通过轮询监听apiserver的方式来获取ingress资源的变化，将ingress资源存储到本地缓存，并通知nginx进行相应的配置修改的加载。<br>ingress controller监控了ingress、service、endpoint、secret、node、configmap一系列资源，一旦资源发生了变化（包括增加、删除和修改），会立即通知backend，例如nginx等。<br>为了减少对apiserver的请求次数，nginx controllder会将每次请求在本地进行缓存，该缓存import了kubernetes提供的包”k8s.io/kubernetes/pkg/client/cache”。</p>
-<h2 id="Ingress-Controller的漂移问题"><a href="#Ingress-Controller的漂移问题" class="headerlink" title="Ingress Controller的漂移问题"></a>Ingress Controller的漂移问题</h2><p>在官方定义的ingress controller，将它部署在kubernetes内部，以pod的方式存在kubernetes集群内部。既然是pod，那么就会存在漂移的问题，而作为外部网络的访问入口，我们是不允许这样的情况发生的。其中一种解决方案是通过VIP和服务发现来解决，但这无疑增加了整个系统的复杂度。<br>其实要解决漂移的问题很简单，我们只要将其部署在kubernetes集群外部，那么它就不受kubernetes的控制，自然而然就不会漂移了。<br>细心的读者可能会发现部署在外部的话，那么集群内外的网络通讯又会成为一个问题。笔者的集群环境的网络覆盖方案选择的是flannel，在每一个node上面初始化kubernetes环境的时候，都会一并装上flannel。<br>关于flannel的原理，这里有一篇文章分析得很详细<a href="http://dockone.io/article/618" target="_blank" rel="noopener">DockOne技术分享（十八）：一篇文章带你了解Flannel</a></p>
-<p>这是flannel的原理图：<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/flannel.png" alt="flannel"></p>
-<p>通过该图我们可以看到通过docker0和flannel0这两块网卡打通了宿主机和集群内部的一个网络通道。</p>
-<p>笔记在自己的节点上进行了验证<br><img src="http://7xlovv.com1.z0.glb.clouddn.com/flannel-if.png" alt="flannel-if"></p>
-<p>也就是说只要部署在该宿主机上的程序，都可以访问该节点上的任何docker容器，至于其它节点的docker容器，通过flanneld到节点的物理网卡，在flanned的时候数据包会被另外一种协议包装（如UDP、VxLAN、AWS VPC和GCE路由）成packet，该包到了另外一个节点的物理网卡再交由flanned进行解包，之后再通过虚拟的flannel和docker两块网卡路由到容器内部。</p>
-<p>因此，我们可以以docker容器和方式或者直接以宿主机进程的方式部署我们的ingress controller。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>至此我们简单的介绍了kubernetes ingress 的整体结构的设计，还有ingress controller的实现机制以及部署问题等，在下一篇文章中我们会通过ingress controller的源码分析，详细讲解它的实现原理。</p>
-
-      
-    </div>
-    
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kubernetes/">kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/">linux</a></li></ul>
-	</div>
-
-      
-	<div class="article-category tagcloud">
-	<a class="article-category-link" href="/categories/kubernetes/">kubernetes</a>
-	</div>
-
-
-      
-      <div class="clearfix"></div>
-    </div>
-    
-  </div>
-  
-</article>
-
-
-
-
-
-
-
-  
-    <article id="post-KubernetesIngress（2）" class="article article-type-post" itemscope itemprop="blogPost">
-  
-    <div class="article-meta">
-      <a href="/2017/04/13/KubernetesIngress（2）/" class="article-date">
-  	<time datetime="2017-04-13T12:48:38.000Z" itemprop="datePublished">2017-04-13</time>
-</a>
-    </div>
-  
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/04/13/KubernetesIngress（2）/">Kubernetes Ingress（2）Controller源码分析</a>
+      <a class="article-title" href="/2017/04/13/KubernetesIngress(2)/">Kubernetes Ingress（2）Controller源码分析</a>
     </h1>
   
 
@@ -1041,6 +955,92 @@
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ic *GenericController)</span> <span class="title">sync</span><span class="params">(e <span class="keyword">interface</span>&#123;&#125;)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	ic.syncRateLimiter.Accept()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> ic.syncQueue.IsShuttingDown() &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> !ic.controllersInSync() &#123;</span><br><span class="line">		time.Sleep(podStoreSyncedPollPeriod)</span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">"deferring sync till endpoints controller has synced"</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	upstreams, servers := ic.getBackendServers()</span><br><span class="line">	<span class="keyword">var</span> passUpstreams []*ingress.SSLPassthroughBackend</span><br><span class="line">	<span class="keyword">for</span> _, server := <span class="keyword">range</span> servers &#123;</span><br><span class="line">		<span class="keyword">if</span> !server.SSLPassthrough &#123;</span><br><span class="line">			<span class="keyword">continue</span></span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">for</span> _, loc := <span class="keyword">range</span> server.Locations &#123;</span><br><span class="line">			<span class="keyword">if</span> loc.Path != rootLocation &#123;</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			&#125;</span><br><span class="line">			passUpstreams = <span class="built_in">append</span>(passUpstreams, &amp;ingress.SSLPassthroughBackend&#123;</span><br><span class="line">				Backend:  loc.Backend,</span><br><span class="line">				Hostname: server.Hostname,</span><br><span class="line">			&#125;)</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	data, err := ic.cfg.Backend.OnUpdate(ingress.Configuration&#123;</span><br><span class="line">		Backends:            upstreams,</span><br><span class="line">		Servers:             servers,</span><br><span class="line">		TCPEndpoints:        ic.getStreamServices(ic.cfg.TCPConfigMapName, api.ProtocolTCP),</span><br><span class="line">		UDPEndpoints:        ic.getStreamServices(ic.cfg.UDPConfigMapName, api.ProtocolUDP),</span><br><span class="line">		PassthroughBackends: passUpstreams,</span><br><span class="line">	&#125;)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	out, reloaded, err := ic.cfg.Backend.Reload(data)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		incReloadErrorCount()</span><br><span class="line">		glog.Errorf(<span class="string">"unexpected failure restarting the backend: \n%v"</span>, <span class="keyword">string</span>(out))</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> reloaded &#123;</span><br><span class="line">		glog.Infof(<span class="string">"ingress backend successfully reloaded..."</span>)</span><br><span class="line">		incReloadCount()</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>这里将一切资源组织成ingress.Configuration结构传给OnUpdate方法，OnUpdate由各个Ingress Controller实现方实现，生成对应的配置数据（例如nginx的config）以byte切片返回，然后再将这些配置数据传给Reload方法，这个方法同样由第三方实现。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>本文通过分析源码的方式理清了整个Ingress Controller框架的来龙去脉，在下一篇文章中，通过对Nginx Ingress Controller源码分析，来看一下如何实现一个Ingress Controller。</p>
+
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kubernetes/">kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/">linux</a></li></ul>
+	</div>
+
+      
+	<div class="article-category tagcloud">
+	<a class="article-category-link" href="/categories/kubernetes/">kubernetes</a>
+	</div>
+
+
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+  
+    <article id="post-KubernetesIngress(1)" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2017/04/13/KubernetesIngress(1)/" class="article-date">
+  	<time datetime="2017-04-13T12:48:38.000Z" itemprop="datePublished">2017-04-13</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/04/13/KubernetesIngress(1)/">Kubernetes Ingress（1）简介</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="为什么选择Ingress"><a href="#为什么选择Ingress" class="headerlink" title="为什么选择Ingress"></a>为什么选择Ingress</h2><p>kubernets的service和pod在集群内部有着集群网络统一管理和分配的ip地址，但是这些ip地址只有在集群内部可见，任何集群外部的节点都无法直接访问内部节点。显然，我们必须通过其它的渠道来访问。</p>
+<p>目前，kubernetes提供了三种访问的方式：</p>
+<ul>
+<li>NodePort</li>
+<li>LoadBalance</li>
+<li>Ingress</li>
+</ul>
+<p>其中，NodePort对于主机端口资原的要求非常高，无法应用于大规模的企业私有云，而LoadBalance方式只有在像GCE、Asure等等这些云服务提供商上面才能使用。因此，对于私有云可以采用的最佳入口方式非Ingress莫属。</p>
+<h2 id="什么是Ingress"><a href="#什么是Ingress" class="headerlink" title="什么是Ingress"></a>什么是Ingress</h2><p>Ingress是一系列允许入站链接到达集群内部服务的规则的集合。<br>未使用Ingress，外部网络无法到达内部服务<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">  internet</span><br><span class="line">      |</span><br><span class="line">------------</span><br><span class="line">[ Services ]</span><br></pre></td></tr></table></figure></p>
+<p>Ingress的加入则使外部网络有了访问内部服务的途径<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> internet</span><br><span class="line">     |</span><br><span class="line">[ Ingress ]</span><br><span class="line">--|-----|--</span><br><span class="line">[ Services ]</span><br></pre></td></tr></table></figure></p>
+<p>Ingress可以为服务配置一系列的访问域名，负载均衡策略，SSL等等。</p>
+<h2 id="Ingress-Resource"><a href="#Ingress-Resource" class="headerlink" title="Ingress Resource"></a>Ingress Resource</h2><p>Ingress和Pod、Servce等等类似，被定义为kubernetes的一种资源<br>它的一个简单的示例如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: extensions/v1beta1</span><br><span class="line">kind: Ingress</span><br><span class="line">metadata:</span><br><span class="line">  name: test-ingress</span><br><span class="line">spec:</span><br><span class="line">  rules:</span><br><span class="line">  - host: foo.bar.com</span><br><span class="line">  - http:</span><br><span class="line">      paths:</span><br><span class="line">      - path: /testpath</span><br><span class="line">        backend:</span><br><span class="line">          serviceName: test</span><br><span class="line">          servicePort: 80</span><br></pre></td></tr></table></figure></p>
+<p>这段Ingress的描述的意思是：将host为foo.bar.com且路径为/testpath的访问引导到test:80这个服务上面。</p>
+<h2 id="Ingress-Controller"><a href="#Ingress-Controller" class="headerlink" title="Ingress Controller"></a>Ingress Controller</h2><p>本质上说Ingress只是存储在etcd上面一些数据，我们可以能过kubernetes的apiserver添加删除和修改ingress资源。那么真正让整个Ingress运转起来的一个重要组件是Ingress Controller。<br>然而，这个Controller并不像其它Controller一样作为kubernetes的核心组件在master启动的时候一起启动起来，它实际上是kubernetes的一个扩展，我们必须选择一个适合自己的Ingress Controller，或者自己去实现一个。</p>
+<p>对于Ingress Controller官方的定义是这样子的：</p>
+<blockquote>
+<p>An Ingress Controller is a daemon, deployed as a Kubernetes Pod, that watches the apiserver’s /ingresses endpoint for updates to the Ingress resource. Its job is to satisfy requests for ingress.</p>
+</blockquote>
+<p>Ingress Controller作为一个守户进程，通过监听apiserver的ingresses资源变化，并且根据其指定的规则建立起外部网络访问内部服务的通道。对于官方描述的 deployed as a Kubernetes Pod，实际上是没办法运用到生产环境当中去的，这个我们在后面会提到这个问题，并且会有相应的解决方案。</p>
+<h2 id="Ingress-Controller的架构"><a href="#Ingress-Controller的架构" class="headerlink" title="Ingress Controller的架构"></a>Ingress Controller的架构</h2><p><img src="/image/ingress-controller.png" alt="ingress-controller"></p>
+<p>上图展示了一个nginx ingress controller的部署架构图，ingress controller通过轮询监听apiserver的方式来获取ingress资源的变化，将ingress资源存储到本地缓存，并通知nginx进行相应的配置修改的加载。<br>ingress controller监控了ingress、service、endpoint、secret、node、configmap一系列资源，一旦资源发生了变化（包括增加、删除和修改），会立即通知backend，例如nginx等。<br>为了减少对apiserver的请求次数，nginx controllder会将每次请求在本地进行缓存，该缓存import了kubernetes提供的包”k8s.io/kubernetes/pkg/client/cache”。</p>
+<h2 id="Ingress-Controller的漂移问题"><a href="#Ingress-Controller的漂移问题" class="headerlink" title="Ingress Controller的漂移问题"></a>Ingress Controller的漂移问题</h2><p>在官方定义的ingress controller，将它部署在kubernetes内部，以pod的方式存在kubernetes集群内部。既然是pod，那么就会存在漂移的问题，而作为外部网络的访问入口，我们是不允许这样的情况发生的。其中一种解决方案是通过VIP和服务发现来解决，但这无疑增加了整个系统的复杂度。<br>其实要解决漂移的问题很简单，我们只要将其部署在kubernetes集群外部，那么它就不受kubernetes的控制，自然而然就不会漂移了。<br>细心的读者可能会发现部署在外部的话，那么集群内外的网络通讯又会成为一个问题。笔者的集群环境的网络覆盖方案选择的是flannel，在每一个node上面初始化kubernetes环境的时候，都会一并装上flannel。<br>关于flannel的原理，这里有一篇文章分析得很详细<a href="http://dockone.io/article/618" target="_blank" rel="noopener">DockOne技术分享（十八）：一篇文章带你了解Flannel</a></p>
+<p>这是flannel的原理图：<br><img src="/image/flannel.png" alt="flannel"></p>
+<p>通过该图我们可以看到通过docker0和flannel0这两块网卡打通了宿主机和集群内部的一个网络通道。</p>
+<p>笔记在自己的节点上进行了验证<br><img src="/image/flannel-if.png" alt="flannel-if"></p>
+<p>也就是说只要部署在该宿主机上的程序，都可以访问该节点上的任何docker容器，至于其它节点的docker容器，通过flanneld到节点的物理网卡，在flanned的时候数据包会被另外一种协议包装（如UDP、VxLAN、AWS VPC和GCE路由）成packet，该包到了另外一个节点的物理网卡再交由flanned进行解包，之后再通过虚拟的flannel和docker两块网卡路由到容器内部。</p>
+<p>因此，我们可以以docker容器和方式或者直接以宿主机进程的方式部署我们的ingress controller。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>至此我们简单的介绍了kubernetes ingress 的整体结构的设计，还有ingress controller的实现机制以及部署问题等，在下一篇文章中我们会通过ingress controller的源码分析，详细讲解它的实现原理。</p>
 
       
     </div>
