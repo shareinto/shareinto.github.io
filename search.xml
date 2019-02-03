@@ -36,11 +36,11 @@
       
         <tags>
             
-            <tag> centos </tag>
+            <tag> docker </tag>
             
             <tag> linux </tag>
             
-            <tag> docker </tag>
+            <tag> centos </tag>
             
         </tags>
       
@@ -63,9 +63,9 @@
       
         <tags>
             
-            <tag> centos </tag>
-            
             <tag> linux </tag>
+            
+            <tag> centos </tag>
             
             <tag> kernel </tag>
             
@@ -90,11 +90,11 @@
       
         <tags>
             
-            <tag> linux </tag>
+            <tag> java </tag>
             
             <tag> docker </tag>
             
-            <tag> java </tag>
+            <tag> linux </tag>
             
         </tags>
       
@@ -167,9 +167,9 @@
       
         <tags>
             
-            <tag> linux </tag>
-            
             <tag> docker </tag>
+            
+            <tag> linux </tag>
             
             <tag> kubernetes </tag>
             
@@ -194,9 +194,9 @@
       
         <tags>
             
-            <tag> linux </tag>
-            
             <tag> docker </tag>
+            
+            <tag> linux </tag>
             
             <tag> kubernetes </tag>
             
@@ -221,9 +221,9 @@
       
         <tags>
             
-            <tag> linux </tag>
-            
             <tag> docker </tag>
+            
+            <tag> linux </tag>
             
             <tag> kubernetes </tag>
             
@@ -421,9 +421,9 @@
       
         <tags>
             
-            <tag> linux </tag>
-            
             <tag> docker </tag>
+            
+            <tag> linux </tag>
             
             <tag> 操作系统 </tag>
             
@@ -459,9 +459,9 @@
       
         <tags>
             
-            <tag> linux </tag>
-            
             <tag> docker </tag>
+            
+            <tag> linux </tag>
             
             <tag> docker-compose </tag>
             
@@ -549,11 +549,11 @@
       
         <tags>
             
-            <tag> centos </tag>
+            <tag> docker </tag>
             
             <tag> linux </tag>
             
-            <tag> docker </tag>
+            <tag> centos </tag>
             
         </tags>
       
@@ -576,9 +576,9 @@
       
         <tags>
             
-            <tag> centos </tag>
-            
             <tag> linux </tag>
+            
+            <tag> centos </tag>
             
             <tag> kernel </tag>
             

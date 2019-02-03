@@ -61,11 +61,11 @@
       <category term="docker" scheme="http://yoursite.com/categories/docker/"/>
     
     
-      <category term="centos" scheme="http://yoursite.com/tags/centos/"/>
+      <category term="docker" scheme="http://yoursite.com/tags/docker/"/>
     
       <category term="linux" scheme="http://yoursite.com/tags/linux/"/>
     
-      <category term="docker" scheme="http://yoursite.com/tags/docker/"/>
+      <category term="centos" scheme="http://yoursite.com/tags/centos/"/>
     
   </entry>
   
@@ -90,9 +90,9 @@
       <category term="linux" scheme="http://yoursite.com/categories/linux/"/>
     
     
-      <category term="centos" scheme="http://yoursite.com/tags/centos/"/>
-    
       <category term="linux" scheme="http://yoursite.com/tags/linux/"/>
+    
+      <category term="centos" scheme="http://yoursite.com/tags/centos/"/>
     
       <category term="kernel" scheme="http://yoursite.com/tags/kernel/"/>
     
@@ -119,11 +119,11 @@
       <category term="linux" scheme="http://yoursite.com/categories/linux/"/>
     
     
-      <category term="linux" scheme="http://yoursite.com/tags/linux/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
       <category term="docker" scheme="http://yoursite.com/tags/docker/"/>
     
-      <category term="java" scheme="http://yoursite.com/tags/java/"/>
+      <category term="linux" scheme="http://yoursite.com/tags/linux/"/>
     
   </entry>
   
@@ -205,9 +205,9 @@
       <category term="kubernetes" scheme="http://yoursite.com/categories/kubernetes/"/>
     
     
-      <category term="linux" scheme="http://yoursite.com/tags/linux/"/>
-    
       <category term="docker" scheme="http://yoursite.com/tags/docker/"/>
+    
+      <category term="linux" scheme="http://yoursite.com/tags/linux/"/>
     
       <category term="kubernetes" scheme="http://yoursite.com/tags/kubernetes/"/>
     
@@ -234,9 +234,9 @@
       <category term="kubernetes" scheme="http://yoursite.com/categories/kubernetes/"/>
     
     
-      <category term="linux" scheme="http://yoursite.com/tags/linux/"/>
-    
       <category term="docker" scheme="http://yoursite.com/tags/docker/"/>
+    
+      <category term="linux" scheme="http://yoursite.com/tags/linux/"/>
     
       <category term="kubernetes" scheme="http://yoursite.com/tags/kubernetes/"/>
     
@@ -264,9 +264,9 @@
       <category term="kubernetes" scheme="http://yoursite.com/categories/kubernetes/"/>
     
     
-      <category term="linux" scheme="http://yoursite.com/tags/linux/"/>
-    
       <category term="docker" scheme="http://yoursite.com/tags/docker/"/>
+    
+      <category term="linux" scheme="http://yoursite.com/tags/linux/"/>
     
       <category term="kubernetes" scheme="http://yoursite.com/tags/kubernetes/"/>
     
@@ -481,9 +481,9 @@
       <category term="linux" scheme="http://yoursite.com/categories/linux/"/>
     
     
-      <category term="linux" scheme="http://yoursite.com/tags/linux/"/>
-    
       <category term="docker" scheme="http://yoursite.com/tags/docker/"/>
+    
+      <category term="linux" scheme="http://yoursite.com/tags/linux/"/>
     
       <category term="操作系统" scheme="http://yoursite.com/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"/>
     
@@ -531,9 +531,9 @@
     </summary>
     
     
-      <category term="linux" scheme="http://yoursite.com/tags/linux/"/>
-    
       <category term="docker" scheme="http://yoursite.com/tags/docker/"/>
+    
+      <category term="linux" scheme="http://yoursite.com/tags/linux/"/>
     
       <category term="docker-compose" scheme="http://yoursite.com/tags/docker-compose/"/>
     
