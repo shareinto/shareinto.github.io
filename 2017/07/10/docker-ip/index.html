@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>为Docker分配独立IP | shareinto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Docker的网络模型  熟悉docker的人都知道，它有以下四种网络模式  host container none bridge   要理解Docker的网络，首先要发解的是Linux下面的network namespace。Linux Namespace是Linux提供的一种内核级别环境隔离的方法。其中network namepspace是六种隔离中的一种。简单来说，如果将某一个进程的netw">
+<meta property="og:type" content="article">
+<meta property="og:title" content="为Docker分配独立IP">
+<meta property="og:url" content="http://yoursite.com/2017/07/10/docker-ip/index.html">
+<meta property="og:site_name" content="shareinto">
+<meta property="og:description" content="Docker的网络模型  熟悉docker的人都知道，它有以下四种网络模式  host container none bridge   要理解Docker的网络，首先要发解的是Linux下面的network namespace。Linux Namespace是Linux提供的一种内核级别环境隔离的方法。其中network namepspace是六种隔离中的一种。简单来说，如果将某一个进程的netw">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/image/docker-bridge.png">
+<meta property="og:image" content="http://yoursite.com/image/docker0.png">
+<meta property="og:image" content="http://yoursite.com/image/veth-pair.png">
+<meta property="og:image" content="http://yoursite.com/image/vethxxx.png">
+<meta property="og:image" content="http://yoursite.com/image/docker-bridge2.png">
+<meta property="article:published_time" content="2017-07-10T09:31:36.000Z">
+<meta property="article:modified_time" content="2019-02-03T09:20:19.056Z">
+<meta property="article:author" content="Dockerfun">
+<meta property="article:tag" content="docker">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/image/docker-bridge.png">
+  
+    <link rel="alternative" href="/atom.xml" title="shareinto" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+			<img lazy-src="/image/litten.png" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/"></a></h1>
+		</hgroup>
+
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						<div class="icon-wrap icon-link hide" data-idx="2">
+							<div class="loopback_l"></div>
+							<div class="loopback_r"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						<li>友情链接</li>
+						
+						
+						<li>关于我</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="#" title="github">github</a>
+					        
+								<a class="weibo" target="_blank" href="#" title="weibo">weibo</a>
+					        
+								<a class="rss" target="_blank" href="#" title="rss">rss</a>
+					        
+								<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/algorithm/" style="font-size: 10px;">algorithm</a> <a href="/tags/centos/" style="font-size: 16px;">centos</a> <a href="/tags/cpu/" style="font-size: 10px;">cpu</a> <a href="/tags/docker/" style="font-size: 20px;">docker</a> <a href="/tags/docker-compose/" style="font-size: 10px;">docker-compose</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/git-flow/" style="font-size: 10px;">git-flow</a> <a href="/tags/go/" style="font-size: 14px;">go</a> <a href="/tags/ios/" style="font-size: 10px;">ios</a> <a href="/tags/java/" style="font-size: 14px;">java</a> <a href="/tags/kernel/" style="font-size: 12px;">kernel</a> <a href="/tags/kubernetes/" style="font-size: 18px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 20px;">linux</a> <a href="/tags/performance/" style="font-size: 10px;">performance</a> <a href="/tags/thread/" style="font-size: 10px;">thread</a> <a href="/tags/tool/" style="font-size: 10px;">tool</a> <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" style="font-size: 16px;">操作系统</a> <a href="/tags/%E6%95%88%E7%8E%87/" style="font-size: 10px;">效率</a>
+					</div>
+				</section>
+				
+				
+				
+				<section class="switch-part switch-part3">
+					<div id="js-friends">
+					
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">奥巴马的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">卡卡的美丽传说</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">本泽马的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">吉格斯的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">习大大大不同</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">托蒂的博客</a>
+			        
+			        </div>
+				</section>
+				
+
+				
+				
+				<section class="switch-part switch-part4">
+				
+					<div id="js-aboutme">虽然不知道你在说什么，但是感觉好厉害的样子...</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide"></h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="/image/litten.png" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author"></h1>
+			</hgroup>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="#" title="github">github</a>
+			        
+						<a class="weibo" target="_blank" href="#" title="weibo">weibo</a>
+			        
+						<a class="rss" target="_blank" href="#" title="rss">rss</a>
+			        
+						<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-docker-ip" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2017/07/10/docker-ip/" class="article-date">
+  	<time datetime="2017-07-10T09:31:36.000Z" itemprop="datePublished">2017-07-10</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      为Docker分配独立IP
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li></ul>
+	</div>
+
+        
+	<div class="article-category tagcloud">
+	<a class="article-category-link" href="/categories/docker/">docker</a>
+	</div>
+
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Docker的网络模型"><a href="#Docker的网络模型" class="headerlink" title="Docker的网络模型"></a>Docker的网络模型</h1><p>  熟悉docker的人都知道，它有以下四种网络模式</p>
+<ol>
+<li>host</li>
+<li>container</li>
+<li>none</li>
+<li>bridge</li>
+</ol>
+<blockquote>
+<p>要理解Docker的网络，首先要发解的是Linux下面的network namespace。Linux Namespace是Linux提供的一种内核级别环境隔离的方法。其中network namepspace是六种隔离中的一种。<br>简单来说，如果将某一个进程的network namespace为设置为ns1，那么它将无法看到宿主机上（默认的名称空间下）的任何网络设备，路由规则，iptables,甚至是整个tcp/ip协议栈。在ns1下面创建的网络设备等等，在宿主机（默认的名称空间下）也同样看不到这些新创建的设备。这样，让用户感觉像是让我们的进程跑在了另外一个操作系统上面，仿佛我们新创建了一个操作系统环境。</p>
+</blockquote>
+<p>了解了network namespace，我在再来了解docker的网络模式</p>
+<ol>
+<li>host:<br>当使用host模式启动容器时，这个容器将不会创建自己的network namespace，而是和宿主机共用同一个。那么这样也就很好理解了，我们的进程创建的任何网络设备，监听的任何端口，宿主机都可以感知得到，也就是说，容器可以使用宿主机的ip和端口资源。</li>
+<li>none:<br>使用none模式，Docker容器拥有自己的network Namespace，但是，并不为Docker容器进行任何网络配置。也就是说，这个Docker容器没有网卡、IP、路由等信息。需要我们自己为Docker容器添加网卡、配置IP等。该模式和host模式的一个重要的区别就是，none模式有自己的network namespace，而host模式没有。</li>
+<li>container:<br>这个模式指定新创建的容器和已经存在的一个容器共享一个network Namespace，而不是和宿主机共享。新创建的容器不会创建自己的网卡，配置自己的 IP，而是和一个指定的容器共享 IP、端口范围等。同样，两个容器除了网络方面，其他的如文件系统、进程列表等还是隔离的。两个容器的进程可以通过 lo 网卡设备通信。</li>
+<li>bridge:<br>bridge模式是docker的默认网络模式。当Docker进程启动时，会在主机上创建一个名为docker0的虚拟网桥，此主机上启动的Docker容器会连接到这个虚拟网桥上。虚拟网桥的工作方式和物理交换机类似，这样主机上的所有容器就通过交换机连在了一个二层网络中。从docker0子网中分配一个IP给容器使用，并设置docker0的IP地址为容器的默认网关。在主机上创建一对虚拟网卡veth pair设备，Docker将veth pair设备的一端放在新创建的容器中，并命名为eth0（容器的网卡），另一端放在主机中，以vethxxx这样类似的名字命名，并将这个网络设备加入到docker0网桥中。</li>
+</ol>
+<h1 id="bridge网络模式"><a href="#bridge网络模式" class="headerlink" title="bridge网络模式"></a>bridge网络模式</h1><p>作为docker默认的网络模式，是最复杂也是运用最广的模式。我们先来看一下，在这种模式下，它的网格拓扑结构。<br><img src="/image/docker-bridge.png" alt="docker-bridge"><br>这里首先要讲解一下linux下虚拟网桥的概念：</p>
+<ul>
+<li><p>虚拟网桥：<br>首先，它的主体部分是一个二层交换机，但是奇怪的是，我们在宿主机上查看linux网络设备docker0的时候，它会有一个ip地址（作者主机上的docker0）<br><img src="/image/docker0.png" alt="docker0"><br>稍微有点网络常识的人会知道，交换机是二层设备，是没有ip地址的。那么这个ip地址又是怎么来的呢。<br>我们可以思考一下，假设你买了一个物理交换机回来以后，我们的主机要如何使用这个交换机？答案很简单，用一根网线将主机上的某一块网卡接到交换机的一个端口上面！是的，那么docker0设备上的ip实际上就是主机上连接交换机网卡的ip。<br>所以，linux的虚拟网桥实际上包括三部分：</p>
+<ul>
+<li>一个L2的交换机</li>
+<li>一个主机的网卡</li>
+<li>一根连接以上两部分的网线</li>
+</ul>
+</li>
+<li><p>veth pair<br>了解了虚拟网桥，我们再来看一下另一个linux的虚拟网络设备： veth-pair<br>它实际上是一对虚拟网卡,从一张veth网卡发出的数据包可以直接到达它的peer veth,两者之间存在着虚拟链路。也就是说，这种虚拟设备包括以下三部分：</p>
+<ul>
+<li>一个安装在主机上的网卡</li>
+<li>另一个安装在主机上的网卡</li>
+<li>一根连接这两个网卡的网线<br>大家可能会觉得奇怪，这样的网络设备有什么用，数据从一个网卡出去，再从另外一块网卡进来？其实，这种网络设备有一个特点，就是两块网卡可以分别处于不同的network namespace。<br><img src="/image/veth-pair.png" alt="veth-pair"><br>docker正是利用了这种特性，将其中的一块网卡添加到容器内部，另外一块留在宿主机上面，大家通过ifconfig命令在宿主机可以看到vethxxx这样的网络设备，但是这样的网络设备它是没有ip地址的。<br><img src="/image/vethxxx.png" alt="vethxxx"><br>这又是为什么呢？这要回到上面提到的虚拟网桥。实际上这块网卡被添加到了docker0的交换机设备上，变成了该交换机上的一个端口，交换机的端口没有ip也就很正常了。<br>我们可以通过brctl命令，将一个物理设备添加到一个虚拟网桥上面：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># brctl addif docker0 vethae36b9b</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>这个命令的意思是将vethae36b9b这个网络设备添加到docker0这个网桥上面。<br>还可以查看已添加到网桥上面的设备</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># brctl show docker0</span></span><br><span class="line">bridge name     bridge id               STP enabled     interfaces</span><br><span class="line">docker0         8000.0242f2558144       no              vethae36b9b</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>到此，我们来理解bridge网络模式的拓扑结构就很简单了，这是不是非常像我们家庭网络的结构：一个个容器代表了家里的一台台计算机，而宿主机这时候变成了连接外网的路由器了。在这个子网内部的各个容器之间是可以互相访问的，容器可以访问外部网络，而外部网络要访问内部容器，就必须通过nat端口映射才行。</p>
+<h1 id="给docker容器分配一个和宿主机处于同一网段的ip"><a href="#给docker容器分配一个和宿主机处于同一网段的ip" class="headerlink" title="给docker容器分配一个和宿主机处于同一网段的ip"></a>给docker容器分配一个和宿主机处于同一网段的ip</h1><p>bridge网络有一个问题，就是多个容器要同时对外暴露服务时，会竞争宿主机上面的端口，导致端口资紧张的情况发生。那么我们能不能给docker分配一个和宿主机处于同一个网段的ip，这样，外部网络就可以直接访问该容器了呢?答案当然是可以，我们现在就利用上面的知识，来更改一下docker的网络拓扑结构。<br><img src="/image/docker-bridge2.png" alt="docker-bridge2"><br>这里我们为了避免连接不上宿主机，另外创建一个虚拟网桥br0<br>em1是宿主机上的网卡，它的ip为172.24.133.39/24。我们的做法很简单，将em1添加到docker0网桥上，然后将ip（172.24.133.39）设置给br0设备。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># brctl addbr br0</span></span><br><span class="line"><span class="comment"># brctl stp br0 off</span></span><br><span class="line"><span class="comment"># ifconfig br0 172.24.133.39/24 up</span></span><br><span class="line"><span class="comment"># brctl addif br0 em1</span></span><br><span class="line"><span class="comment"># ifconfig em1 0.0.0.0</span></span><br><span class="line"><span class="comment"># route add default gw 172.24.133.254 dev br0</span></span><br></pre></td></tr></table></figure></p>
+<p>创建一对veth pair,并将其中一个添加到br0中,另一个设置给容器（docker的network namespace的名称就是容器id)</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ip link add peerA type veth peer name peerB </span></span><br><span class="line"><span class="comment"># brctl addif br0 peerA</span></span><br><span class="line"><span class="comment"># ip link set peerA up</span></span><br><span class="line"><span class="comment"># ip link set peerB netns $&#123;container-pid&#125;</span></span><br></pre></td></tr></table></figure>
+<p>然后，进入到容器中，将eth1的ip设置为172.24.133.253<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ip link set dev peerB name eth1 </span></span><br><span class="line"><span class="comment"># ip link set eth1 up</span></span><br><span class="line"><span class="comment"># ip addr add 172.24.133.253/24 dev eth1</span></span><br><span class="line"><span class="comment"># route add default gw 172.24.133.254 dev eth1</span></span><br></pre></td></tr></table></figure></p>
+<p>此时，我们就可以通过172.24.133.253这个ip直接访问容器了<br>（全文完）</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/08/10/multiple-threads/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          多线程一定比单线程快吗
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/04/24/blue-green-deploy/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">基于Ingress的BlueGreenDeployment</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">分享到：</span>
+		<a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<a class="jiathis_button_tumblr"></a>
+		<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
+
+
+
+<div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="docker-ip" data-title="为Docker分配独立IP" data-url="http://yoursite.com/2017/07/10/docker-ip/"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"true"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2021 Dockerfun
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: true,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+
+<script src="http://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  </div>
+</body>
+</html>

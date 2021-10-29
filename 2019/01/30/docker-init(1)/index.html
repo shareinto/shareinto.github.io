@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>谁是Docker容器的init(1)进程 | shareinto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="什么是PID 1 在Linux操作系统中，当内核初始化完毕之后，会启动一个init进程，这个进程是整个操作系统的第一个用户进程，所以它的进程ID为1，也就是我们常说的PID1进程。在这之后，所有的用户态进程都是该进程的后代进程，由此我们可以看出，整个系统的用户进程，是一棵由init进程作为根的进程树。   init进程有一个非常厉害的地方，就是SIGKILL信号对它无效。很显然，如果我们将一棵树的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="谁是Docker容器的init(1)进程">
+<meta property="og:url" content="http://yoursite.com/2019/01/30/docker-init(1)/index.html">
+<meta property="og:site_name" content="shareinto">
+<meta property="og:description" content="什么是PID 1 在Linux操作系统中，当内核初始化完毕之后，会启动一个init进程，这个进程是整个操作系统的第一个用户进程，所以它的进程ID为1，也就是我们常说的PID1进程。在这之后，所有的用户态进程都是该进程的后代进程，由此我们可以看出，整个系统的用户进程，是一棵由init进程作为根的进程树。   init进程有一个非常厉害的地方，就是SIGKILL信号对它无效。很显然，如果我们将一棵树的">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/image/docker-arch.jpg">
+<meta property="article:published_time" content="2019-01-30T15:06:29.000Z">
+<meta property="article:modified_time" content="2019-02-12T06:00:50.000Z">
+<meta property="article:author" content="Dockerfun">
+<meta property="article:tag" content="docker">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/image/docker-arch.jpg">
+  
+    <link rel="alternative" href="/atom.xml" title="shareinto" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+			<img lazy-src="/image/litten.png" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/"></a></h1>
+		</hgroup>
+
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						<div class="icon-wrap icon-link hide" data-idx="2">
+							<div class="loopback_l"></div>
+							<div class="loopback_r"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						<li>友情链接</li>
+						
+						
+						<li>关于我</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="#" title="github">github</a>
+					        
+								<a class="weibo" target="_blank" href="#" title="weibo">weibo</a>
+					        
+								<a class="rss" target="_blank" href="#" title="rss">rss</a>
+					        
+								<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/algorithm/" style="font-size: 10px;">algorithm</a> <a href="/tags/centos/" style="font-size: 16px;">centos</a> <a href="/tags/cpu/" style="font-size: 10px;">cpu</a> <a href="/tags/docker/" style="font-size: 20px;">docker</a> <a href="/tags/docker-compose/" style="font-size: 10px;">docker-compose</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/git-flow/" style="font-size: 10px;">git-flow</a> <a href="/tags/go/" style="font-size: 14px;">go</a> <a href="/tags/ios/" style="font-size: 10px;">ios</a> <a href="/tags/java/" style="font-size: 14px;">java</a> <a href="/tags/kernel/" style="font-size: 12px;">kernel</a> <a href="/tags/kubernetes/" style="font-size: 18px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 20px;">linux</a> <a href="/tags/performance/" style="font-size: 10px;">performance</a> <a href="/tags/thread/" style="font-size: 10px;">thread</a> <a href="/tags/tool/" style="font-size: 10px;">tool</a> <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" style="font-size: 16px;">操作系统</a> <a href="/tags/%E6%95%88%E7%8E%87/" style="font-size: 10px;">效率</a>
+					</div>
+				</section>
+				
+				
+				
+				<section class="switch-part switch-part3">
+					<div id="js-friends">
+					
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">奥巴马的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">卡卡的美丽传说</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">本泽马的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">吉格斯的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">习大大大不同</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">托蒂的博客</a>
+			        
+			        </div>
+				</section>
+				
+
+				
+				
+				<section class="switch-part switch-part4">
+				
+					<div id="js-aboutme">虽然不知道你在说什么，但是感觉好厉害的样子...</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide"></h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="/image/litten.png" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author"></h1>
+			</hgroup>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="#" title="github">github</a>
+			        
+						<a class="weibo" target="_blank" href="#" title="weibo">weibo</a>
+			        
+						<a class="rss" target="_blank" href="#" title="rss">rss</a>
+			        
+						<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-docker-init(1)" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2019/01/30/docker-init(1)/" class="article-date">
+  	<time datetime="2019-01-30T15:06:29.000Z" itemprop="datePublished">2019-01-30</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      谁是Docker容器的init(1)进程
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li></ul>
+	</div>
+
+        
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="什么是PID-1"><a href="#什么是PID-1" class="headerlink" title="什么是PID 1"></a>什么是PID 1</h1><blockquote>
+<p>在Linux操作系统中，当内核初始化完毕之后，会启动一个init进程，这个进程是整个操作系统的第一个用户进程，所以它的进程ID为1，也就是我们常说的PID1进程。在这之后，所有的用户态进程都是该进程的后代进程，由此我们可以看出，整个系统的用户进程，是一棵由init进程作为根的进程树。</p>
+</blockquote>
+<blockquote>
+<p>init进程有一个非常厉害的地方，就是SIGKILL信号对它无效。很显然，如果我们将一棵树的树根砍了，那么这棵树就会分解成很多棵子树，这样的最终结果是导致整个操作系统进程杂乱无章，无法管理。</p>
+</blockquote>
+<blockquote>
+<p>PID 1进程的发展也是一段非常有趣的过程，从最早的sysvinit,到upstart,再到systemd。其中systemd还在linux社区引起了不小的争议，systemd作者Lennart还在 <a href="https://plus.google.com/+LennartPoetteringTheOneAndOnly/posts/J2TZrTvu7vd" target="_blank" rel="noopener">Google Plus 上发了贴子</a>，喜欢八卦的同学可以前往一读。</p>
+</blockquote>
+<blockquote>
+<p>那么这个PID 1进程在操作系统的整个生命周期中，到底起了什么重要的作用呢？首先我们先来了解以下几个概念：</p>
+</blockquote>
+<h2 id="进程表项"><a href="#进程表项" class="headerlink" title="进程表项"></a>进程表项</h2><blockquote>
+<p>linux内核程序通过进程表对进程进行管理, 每个进程在进程表中占有一项，称为进程表项，它记录了进程的状态，打开的文件描述符等等一系统信息。当一个进程结束了运行或在半途中终止了运行，那么内核就需要释放该进程所占用的系统资源。这包括进程运行时打开的文件，申请的内存等。但是，这里要注意的是，进程表项并没有随着进程的退出而被清除，它会一直占用内核的内存。为什么会有这么奇怪的行为呢？这是因为在某些程序中，我们必须明确地知道进程的退出状态等信息，而这些信息的获取是由父进程调用wait/waitpid而获取的。设想这样一种场景，如果子进程在退出的时候直接清除文件表项的话，那么父进程就很可能没有地方获取进程的退出状态了，因此操作系统就会将文件表项一直保留至wait/waitpid系统调用结束。</p>
+</blockquote>
+<h2 id="僵尸进程"><a href="#僵尸进程" class="headerlink" title="僵尸进程"></a>僵尸进程</h2><blockquote>
+<p>僵尸进程指的是：进程退出后，到其父进程还未对其调用wait/waitpid之间的这段时间所处的状态。一般来说，这种状态持续的时间很短，所以我们一般很难在系统中捕捉到。但是，一些粗心的程序员可能会忘记调用wait/waitpid，或者由于某种原因未执行该调用等等，那么这个时候就会出现长期驻留的僵尸进程了。如果大量的产生僵尸进程，其进程号就会一直被占用，可能导致系统不能产生新的进程。</p>
+</blockquote>
+<blockquote>
+<p>聪明的读者可能立马会想到一种情况，就是如果父进程先于子进结束，那么是不是就没有人负责这个子进程的资源清理工作了，那我们的系统岂不是到处都是僵尸进程?事实上操作系统设计人员早就想到了这个问题，这也是我们的PID 1进程最重要的职责。</p>
+</blockquote>
+<h2 id="孤儿进程"><a href="#孤儿进程" class="headerlink" title="孤儿进程"></a>孤儿进程</h2><blockquote>
+<p>父进程先于子进程退出，那么子进程将成为孤儿进程。孤儿进程将被init进程(进程号为1)接管，并由init进程对它完成状态收集(wait/waitpid)工作。</p>
+</blockquote>
+<blockquote>
+<p>从这里我们可以看出，PID 1负责清理那些被抛弃的进程所留下来的痕迹，有效的回收的系统资源，保证系统长时间稳定的运行，可谓是功不可没。在理解了它的重要性之后，我们今天主要探讨一下在容器中的PID 1是怎么回事。</p>
+</blockquote>
+<h1 id="容器中的孤儿进程"><a href="#容器中的孤儿进程" class="headerlink" title="容器中的孤儿进程"></a>容器中的孤儿进程</h1><h2 id="容器中的PID-1"><a href="#容器中的PID-1" class="headerlink" title="容器中的PID 1"></a>容器中的PID 1</h2><blockquote>
+<p>熟悉Docker同学可能知道，容器并不是一个完整的操作系统，它也没有什么内核初始化过程，更没有像init(1)这样的初始化过程。在容器中被标志为PID 1的进程实际上就是一个普普通通的用户进程，也就是我们制作镜像时在Dockerfile中指定的ENTRYPOINT的那个进程。而这个进程在宿主机上有一个普普通通的进程ID，而在容器中之所以变成PID 1，是因为linux内核提供的<a href="https://lwn.net/Articles/531419/" target="_blank" rel="noopener">PID namespaces</a>功能，如果宿主机的所有用户进程构成了一个完整的树型结构，那么PID namespaces实际上就是将这个ENTRYPOINT进程（包括它的后代进程）从这棵大树剪下来，很显然，剪下来的这部分东西本身也是一个树型结构，它完全可以自己长成一棵苍天大树（不断地fork）,当然，子树里面是看不到整棵树的原貌的，但是在子树外面确可以看到完整的子树。<br>比如我们在宿主机查看某个tomcat容器：<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">$</span> <span class="string">docker</span> <span class="string">top</span> <span class="string">7bb975e9a7cb</span></span><br><span class="line"><span class="string">UID</span>                 <span class="string">PID</span>                 <span class="string">PPID</span>                <span class="string">C</span>                   <span class="string">STIME</span>               <span class="string">TTY</span>                 <span class="string">TIME</span>                <span class="string">CMD</span></span><br><span class="line"><span class="number">8080</span>                <span class="number">56128</span>               <span class="number">56100</span>               <span class="number">0</span>                   <span class="number">15</span><span class="string">:52</span>               <span class="string">?</span>                   <span class="number">00</span><span class="string">:00:00</span>            <span class="string">/bin/bash</span> <span class="string">/home/tomcat/start.sh</span></span><br><span class="line"><span class="number">8080</span>                <span class="number">56178</span>               <span class="number">56128</span>               <span class="number">2</span>                   <span class="number">15</span><span class="string">:52</span>               <span class="string">?</span>                   <span class="number">00</span><span class="string">:02:26</span>            <span class="string">/usr/bin/java</span> <span class="string">......</span></span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">$</span> <span class="string">cat</span> <span class="string">/proc/56128/status</span> <span class="string">|</span> <span class="string">grep</span> <span class="string">NSpid</span></span><br><span class="line"><span class="attr">NSpid:</span>  <span class="number">56128</span>   <span class="number">1</span></span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">$</span> <span class="string">cat</span> <span class="string">/proc/56178/status</span> <span class="string">|</span> <span class="string">grep</span> <span class="string">NSpid</span></span><br><span class="line"><span class="attr">NSpid:</span>  <span class="number">56178</span>   <span class="number">17</span></span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<p>可以看到同一个进程在容器内外的进程号是不同的。我们如果在容器外部kiss -9 56128,那整个容器便会处于退出状态。<br>我们现在进入容器：<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">$</span> <span class="string">docker</span> <span class="string">exec</span> <span class="string">-it</span> <span class="string">7bb975e9a7cb</span> <span class="string">bash</span></span><br><span class="line"><span class="string">$</span>  <span class="string">ps</span> <span class="string">-ef</span></span><br><span class="line"><span class="string">UID</span>         <span class="string">PID</span>   <span class="string">PPID</span>  <span class="string">C</span> <span class="string">STIME</span> <span class="string">TTY</span>          <span class="string">TIME</span> <span class="string">CMD</span></span><br><span class="line"><span class="string">tomcat</span>        <span class="number">1</span>      <span class="number">0</span>  <span class="number">0</span> <span class="number">15</span><span class="string">:52</span> <span class="string">?</span>        <span class="number">00</span><span class="string">:00:00</span> <span class="string">/bin/bash</span> <span class="string">/home/tomcat/start.sh</span></span><br><span class="line"><span class="string">tomcat</span>       <span class="number">17</span>      <span class="number">1</span>  <span class="number">2</span> <span class="number">15</span><span class="string">:52</span> <span class="string">?</span>        <span class="number">00</span><span class="string">:02:30</span> <span class="string">/usr/bin/java</span> <span class="string">....</span></span><br><span class="line"><span class="string">tomcat</span>      <span class="number">119</span>      <span class="number">0</span>  <span class="number">0</span> <span class="number">17</span><span class="string">:24</span> <span class="string">pts/0</span>    <span class="number">00</span><span class="string">:00:00</span> <span class="string">bash</span></span><br><span class="line"><span class="string">tomcat</span>      <span class="number">126</span>    <span class="number">119</span>  <span class="number">0</span> <span class="number">17</span><span class="string">:25</span> <span class="string">pts/0</span>    <span class="number">00</span><span class="string">:00:00</span> <span class="string">ps</span> <span class="string">-ef</span></span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<p>可以看到bash进程的父进程号是0，和PID 1进程处于同一层级上。接下来我们打算在容器当中造个孤儿进程出来。<br><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#parent.sh</span></span><br><span class="line">bash <span class="string">./child.sh</span></span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#child.sh</span></span><br><span class="line"><span class="keyword">while</span> <span class="literal">true</span></span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    <span class="built_in">sleep</span> <span class="number">10</span></span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">bash </span>./parent.sh</span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<p>在另一个终端中运行<br><figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ ddocker exec -it <span class="number">7</span>bb975e9a7cb ps xf -o pid,ppid,stat,args</span><br><span class="line">PID   PPID STAT COMMAND</span><br><span class="line"><span class="number">201</span>      <span class="number">0</span> Rs+  ps xf -o pid,ppid,stat,args</span><br><span class="line"><span class="number">119</span>      <span class="number">0</span> Ss   bash</span><br><span class="line"><span class="number">198</span>    <span class="number">119</span> S+    \_ bash ./parent.sh</span><br><span class="line"><span class="number">199</span>    <span class="number">198</span> S+        \_ bash ./child.sh</span><br><span class="line"><span class="number">200</span>    <span class="number">199</span> S+            \_ sleep <span class="number">10</span></span><br><span class="line">  <span class="number">1</span>      <span class="number">0</span> Ss   /bin/bash /home/tomcat/start.sh</span><br><span class="line"><span class="number">17</span>      <span class="number">1</span> Sl   /usr/bin/java ......</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<p>接下来用kill -9杀死parent进程<br><figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec -it <span class="number">7</span>bb975e9a7cb kill <span class="number">-9</span> <span class="number">198</span></span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec -it <span class="number">7</span>bb975e9a7cb ps xf -o pid,ppid,stat,args</span><br><span class="line">PID   PPID STAT COMMAND</span><br><span class="line"><span class="number">222</span>      <span class="number">0</span> Rs+  ps xf -o pid,ppid,stat,args</span><br><span class="line"><span class="number">199</span>      <span class="number">0</span> S    bash ./child.sh</span><br><span class="line"><span class="number">214</span>    <span class="number">199</span> S     \_ sleep <span class="number">10</span></span><br><span class="line"><span class="number">119</span>      <span class="number">0</span> Ss+  bash</span><br><span class="line">  <span class="number">1</span>      <span class="number">0</span> Ss   /bin/bash /home/tomcat/start.sh</span><br><span class="line"><span class="number">17</span>      <span class="number">1</span> Sl   /usr/bin/java ......</span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<p>可以看到，child进程的父进程变成了PID 0，那么这个PID 0又是何方神圣，为什么它可以接管孤儿进程，又为何ENTRYPOINT进程的父进程也是它。</p>
+</blockquote>
+<h2 id="容器中的PID-0"><a href="#容器中的PID-0" class="headerlink" title="容器中的PID 0"></a>容器中的PID 0</h2><blockquote>
+<p>我们在前面提到过，容器中的进程树实际上是宿主机进程树的一棵子树，那么我们在宿主机上是否就可以找到这棵子树的父进程呢？我们在宿主机上执行以下命令<br><figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ ps -axf | grep -C <span class="number">5</span> <span class="number">56128</span></span><br><span class="line">......</span><br><span class="line"><span class="number">56100</span> ?        Sl     0:<span class="number">00</span>      \_ docker-containerd-shim -namespace moby -workdir <span class="regexp">/data/</span>var<span class="regexp">/lib/</span>docker<span class="regexp">/containerd/</span>daemon<span class="regexp">/io.containerd.runtime.v1.linux/</span>moby<span class="regexp">/7bb975e9a7cbf84a17b584c0594c854283e47116cb4fd7eaecec8e4c706e363f -address /</span>var<span class="regexp">/run/</span>docker<span class="regexp">/containerd/</span>docker-containerd.sock -containerd-binary <span class="regexp">/usr/</span>bin<span class="regexp">/docker-containerd -runtime-root /</span>var<span class="regexp">/run/</span>docker/runtime-runc -systemd-cgroup</span><br><span class="line"><span class="number">56128</span> ?        Ss     0:<span class="number">00</span>          \_ <span class="regexp">/bin/</span>bash <span class="regexp">/home/</span>tomcat/start.sh</span><br><span class="line"><span class="number">56178</span> ?        Sl     2:<span class="number">47</span>          |   \_ <span class="regexp">/usr/</span>bin/java ......</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<p>至此，我们可以大胆的猜想，这个PID 0应该就是这个docker-containerd-shim</p>
+</blockquote>
+<h2 id="Docker-1-11版本后的架构"><a href="#Docker-1-11版本后的架构" class="headerlink" title="Docker 1.11版本后的架构"></a>Docker 1.11版本后的架构</h2><blockquote>
+<p><img src="/image/docker-arch.jpg" alt="Docker"><br>从架构图中我们可以看到shim进程下还有一个runC进程，但我们在进程树中并没有发现runC这个进程。</p>
+</blockquote>
+<h2 id="runC"><a href="#runC" class="headerlink" title="runC"></a>runC</h2><blockquote>
+<p>runC是OCI标准的一个参考实现，而OCI Open Container Initiative，是由多家公司共同成立的项目，并由linux基金会进行管理，致力于container runtime的标准的制定和runc的开发等工作。runc，是对于OCI标准的一个参考实现，是一个可以用于创建和运行容器的CLI(command-line interface)工具。runc直接与容器所依赖的cgroup/linux kernel等进行交互，负责为容器配置cgroup/namespace等启动容器所需的环境，创建启动容器的相关进程。</p>
+</blockquote>
+<blockquote>
+<p>事实上，Docker容器的创建过程是这样子的 docker-containerd-shim –&gt; runC –&gt; entrypoint，而我们看到的最终状态是 docker-containerd-shim –&gt; entrypoint，聪明的你可能已经猜到，runc进程创建完容器之后，自己就先退出去了。但是这里面其实暗藏了一个问题，按照前面提到的孤儿进程理论，entrypint进程应该由操作系统的PID 1进程接管，但为什么会被shim接管呢？</p>
+</blockquote>
+<h2 id="PR-SET-CHILD-SUBREAPER"><a href="#PR-SET-CHILD-SUBREAPER" class="headerlink" title="PR_SET_CHILD_SUBREAPER"></a><a href="http://man7.org/linux/man-pages/man2/prctl.2.html?spm=a2c4e.11153940.blogcont61894.11.14a950abm8s9Ha" target="_blank" rel="noopener">PR_SET_CHILD_SUBREAPER</a></h2><blockquote>
+<p>linux在内核3.14以后版本支持该系统调用，它可以将调用进程标记“child subreaper”属性，而拥有该属性的进程则可以充当init(1)进程的功能，收养其后代进程中所产生的孤儿进程。我们可以从shim的源码中找到答案<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">start</span><span class="params">(log *os.File)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">     <span class="comment">// start handling signals as soon as possible so that things are properly reaped</span></span><br><span class="line">     <span class="comment">// or if runtime exits before we hit the handler</span></span><br><span class="line">     signals := <span class="built_in">make</span>(<span class="keyword">chan</span> os.Signal, <span class="number">2048</span>)</span><br><span class="line">     signal.Notify(signals)</span><br><span class="line">     <span class="comment">// set the shim as the subreaper for all orphaned processes created by the container</span></span><br><span class="line">     <span class="keyword">if</span> err := osutils.SetSubreaper(<span class="number">1</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">         <span class="keyword">return</span> err</span><br><span class="line">     &#125;</span><br><span class="line">     ...</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<p>既然充当了reaper的角色，那么就应该尽到回收资源的责任：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">start</span><span class="params">(log *os.File)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">switch</span> s &#123;</span><br><span class="line">        <span class="keyword">case</span> syscall.SIGCHLD:</span><br><span class="line">            exits, _ := osutils.Reap(<span class="literal">false</span>)</span><br><span class="line">            ...</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Reap</span><span class="params">(wait <span class="keyword">bool</span>)</span> <span class="params">(exits []Exit, err error)</span></span> &#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        pid, err := syscall.Wait4(<span class="number">-1</span>, &amp;ws, flag, &amp;rus)</span><br><span class="line">        <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> err == syscall.ECHILD &#123;</span><br><span class="line">                <span class="keyword">return</span> exits, <span class="literal">nil</span></span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> exits, err</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<p>从这里我们可以看到shim的wait/waitpid系统调用。</p>
+</blockquote>
+<h2 id="1-11以前的Docker"><a href="#1-11以前的Docker" class="headerlink" title="1.11以前的Docker"></a>1.11以前的Docker</h2><blockquote>
+<p>实际上在早期的Docker中，并没有reaper的设置，那么内核此时会如何处理孤儿进程呢？<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * When we die, we re-parent all our children, and try to:</span></span><br><span class="line"><span class="comment"> * 1. give them to another thread in our thread group, if such a member exists</span></span><br><span class="line"><span class="comment"> * 2. give it to the first ancestor process which prctl'd itself as a</span></span><br><span class="line"><span class="comment"> *    child_subreaper for its children (like a service manager)</span></span><br><span class="line"><span class="comment"> * 3. give it to the init process (PID 1) in our pid namespace</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> struct task_struct *<span class="title">find_new_reaper</span><span class="params">(struct task_struct *father,</span></span></span><br><span class="line"><span class="function"><span class="params">                       struct task_struct *child_reaper)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">task_struct</span> *<span class="title">thread</span>, *<span class="title">reaper</span>;</span></span><br><span class="line"></span><br><span class="line">    thread = find_alive_thread(father);</span><br><span class="line">    <span class="keyword">if</span> (thread)</span><br><span class="line">        <span class="keyword">return</span> thread;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (father-&gt;signal-&gt;has_child_subreaper) &#123;</span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * Find the first -&gt;is_child_subreaper ancestor in our pid_ns.</span></span><br><span class="line"><span class="comment">         * We start from father to ensure we can not look into another</span></span><br><span class="line"><span class="comment">         * namespace, this is safe because all its threads are dead.</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="keyword">for</span> (reaper = father;</span><br><span class="line">             !same_thread_group(reaper, child_reaper);</span><br><span class="line">             reaper = reaper-&gt;real_parent) &#123;</span><br><span class="line">            <span class="comment">/* call_usermodehelper() descendants need this check */</span></span><br><span class="line">            <span class="keyword">if</span> (reaper == &amp;init_task)</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">if</span> (!reaper-&gt;signal-&gt;is_child_subreaper)</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            thread = find_alive_thread(reaper);</span><br><span class="line">            <span class="keyword">if</span> (thread)</span><br><span class="line">                <span class="keyword">return</span> thread;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> child_reaper;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<ol>
+<li>找到相同线程组里其它可用线程</li>
+<li>沿着它的进程树向祖先进程找一个最近的child_subreaper并且运行着的进程</li>
+<li>该namespace下进程号为1的进程</li>
+</ol>
+</blockquote>
+<blockquote>
+<p>很显然，旧版本的Docker在容器内所产生的孤儿进程，会被进程号为1（也就是entrypoint进程）所接管，而我们知道，该进程一般是一个普通的应用程序，一般不会特意去实现对孤儿进程的处理，所以，在使用早期版本的Docker时，我们会发现操作系统会经常出现僵尸进程。所以，为了你的系统稳定，早点升级你的内核和Docker的版本吧。</p>
+</blockquote>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/02/12/helm-install/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          helm安装
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/09/17/centos7-docker-install/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">centos7上安装docker环境</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">分享到：</span>
+		<a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<a class="jiathis_button_tumblr"></a>
+		<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
+
+
+
+<div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="docker-init(1)" data-title="谁是Docker容器的init(1)进程" data-url="http://yoursite.com/2019/01/30/docker-init(1)/"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"true"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2021 Dockerfun
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: true,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+
+<script src="http://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  </div>
+</body>
+</html>

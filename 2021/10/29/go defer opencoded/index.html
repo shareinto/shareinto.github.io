@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Go defer opencoded | shareinto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="引子在Go 1.13的时候，每当遇到defer语句，运行时就会生成一个_defer结构体对象（结构体保存着延迟函数的地址，参数及参数大小等信息），并将其插入 一个 defer链表的头部（该链表位于当前g上），如下图所示：_defer结构体的完整定义：12345678910111213141516171819202122232425262728293031323334&#x2F;&#x2F; A _defer hol">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Go defer opencoded">
+<meta property="og:url" content="http://yoursite.com/2021/10/29/go%20defer%20opencoded/index.html">
+<meta property="og:site_name" content="shareinto">
+<meta property="og:description" content="引子在Go 1.13的时候，每当遇到defer语句，运行时就会生成一个_defer结构体对象（结构体保存着延迟函数的地址，参数及参数大小等信息），并将其插入 一个 defer链表的头部（该链表位于当前g上），如下图所示：_defer结构体的完整定义：12345678910111213141516171819202122232425262728293031323334&#x2F;&#x2F; A _defer hol">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/image/deferchain.png">
+<meta property="article:published_time" content="2021-10-29T15:56:40.000Z">
+<meta property="article:modified_time" content="2021-10-29T15:57:07.313Z">
+<meta property="article:author" content="Dockerfun">
+<meta property="article:tag" content="go">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/image/deferchain.png">
+  
+    <link rel="alternative" href="/atom.xml" title="shareinto" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+			<img lazy-src="/image/litten.png" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/"></a></h1>
+		</hgroup>
+
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						<div class="icon-wrap icon-link hide" data-idx="2">
+							<div class="loopback_l"></div>
+							<div class="loopback_r"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						<li>友情链接</li>
+						
+						
+						<li>关于我</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="#" title="github">github</a>
+					        
+								<a class="weibo" target="_blank" href="#" title="weibo">weibo</a>
+					        
+								<a class="rss" target="_blank" href="#" title="rss">rss</a>
+					        
+								<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/algorithm/" style="font-size: 10px;">algorithm</a> <a href="/tags/centos/" style="font-size: 16px;">centos</a> <a href="/tags/cpu/" style="font-size: 10px;">cpu</a> <a href="/tags/docker/" style="font-size: 20px;">docker</a> <a href="/tags/docker-compose/" style="font-size: 10px;">docker-compose</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/git-flow/" style="font-size: 10px;">git-flow</a> <a href="/tags/go/" style="font-size: 14px;">go</a> <a href="/tags/ios/" style="font-size: 10px;">ios</a> <a href="/tags/java/" style="font-size: 14px;">java</a> <a href="/tags/kernel/" style="font-size: 12px;">kernel</a> <a href="/tags/kubernetes/" style="font-size: 18px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 20px;">linux</a> <a href="/tags/performance/" style="font-size: 10px;">performance</a> <a href="/tags/thread/" style="font-size: 10px;">thread</a> <a href="/tags/tool/" style="font-size: 10px;">tool</a> <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" style="font-size: 16px;">操作系统</a> <a href="/tags/%E6%95%88%E7%8E%87/" style="font-size: 10px;">效率</a>
+					</div>
+				</section>
+				
+				
+				
+				<section class="switch-part switch-part3">
+					<div id="js-friends">
+					
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">奥巴马的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">卡卡的美丽传说</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">本泽马的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">吉格斯的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">习大大大不同</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">托蒂的博客</a>
+			        
+			        </div>
+				</section>
+				
+
+				
+				
+				<section class="switch-part switch-part4">
+				
+					<div id="js-aboutme">虽然不知道你在说什么，但是感觉好厉害的样子...</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide"></h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="/image/litten.png" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author"></h1>
+			</hgroup>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="#" title="github">github</a>
+			        
+						<a class="weibo" target="_blank" href="#" title="weibo">weibo</a>
+			        
+						<a class="rss" target="_blank" href="#" title="rss">rss</a>
+			        
+						<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-go defer opencoded" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2021/10/29/go%20defer%20opencoded/" class="article-date">
+  	<time datetime="2021-10-29T15:56:40.000Z" itemprop="datePublished">2021-10-29</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Go defer opencoded
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/go/" rel="tag">go</a></li></ul>
+	</div>
+
+        
+	<div class="article-category tagcloud">
+	<a class="article-category-link" href="/categories/go/">go</a>
+	</div>
+
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a name="i3Xs0"></a></p>
+<h1 id="引子"><a href="#引子" class="headerlink" title="引子"></a>引子</h1><p>在Go 1.13的时候，每当遇到defer语句，运行时就会生成一个_defer结构体对象（结构体保存着延迟函数的地址，参数及参数大小等信息），并将其插入 一个 defer链表的头部（该链表位于当前g上），如下图所示：<br><img src="/image/deferchain.png" alt="image.png"><br>_defer结构体的完整定义：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// A _defer holds an entry on the list of deferred calls.</span></span><br><span class="line"><span class="comment">// If you add a field here, add code to clear it in freedefer and deferProcStack</span></span><br><span class="line"><span class="comment">// This struct must match the code in cmd/compile/internal/reflectdata/reflect.go:deferstruct</span></span><br><span class="line"><span class="comment">// and cmd/compile/internal/gc/ssa.go:(*state).call.</span></span><br><span class="line"><span class="comment">// Some defers will be allocated on the stack and some on the heap.</span></span><br><span class="line"><span class="comment">// All defers are logically part of the stack, so write barriers to</span></span><br><span class="line"><span class="comment">// initialize them are not required. All defers must be manually scanned,</span></span><br><span class="line"><span class="comment">// and for heap defers, marked.</span></span><br><span class="line"><span class="keyword">type</span> _defer <span class="keyword">struct</span> &#123;</span><br><span class="line">	siz     <span class="keyword">int32</span> <span class="comment">// includes both arguments and results</span></span><br><span class="line">	started <span class="keyword">bool</span></span><br><span class="line">	heap    <span class="keyword">bool</span></span><br><span class="line">	<span class="comment">// openDefer indicates that this _defer is for a frame with open-coded</span></span><br><span class="line">	<span class="comment">// defers. We have only one defer record for the entire frame (which may</span></span><br><span class="line">	<span class="comment">// currently have 0, 1, or more defers active).</span></span><br><span class="line">	openDefer <span class="keyword">bool</span></span><br><span class="line">	sp        <span class="keyword">uintptr</span>  <span class="comment">// sp at time of defer</span></span><br><span class="line">	pc        <span class="keyword">uintptr</span>  <span class="comment">// pc at time of defer</span></span><br><span class="line">	fn        *funcval <span class="comment">// can be nil for open-coded defers</span></span><br><span class="line">	_panic    *_panic  <span class="comment">// panic that is running defer</span></span><br><span class="line">	link      *_defer</span><br><span class="line"></span><br><span class="line">	<span class="comment">// If openDefer is true, the fields below record values about the stack</span></span><br><span class="line">	<span class="comment">// frame and associated function that has the open-coded defer(s). sp</span></span><br><span class="line">	<span class="comment">// above will be the sp for the frame, and pc will be address of the</span></span><br><span class="line">	<span class="comment">// deferreturn call in the function.</span></span><br><span class="line">	fd   unsafe.Pointer <span class="comment">// funcdata for the function associated with the frame</span></span><br><span class="line">	varp <span class="keyword">uintptr</span>        <span class="comment">// value of varp for the stack frame</span></span><br><span class="line">	<span class="comment">// framepc is the current pc associated with the stack frame. Together,</span></span><br><span class="line">	<span class="comment">// with sp above (which is the sp associated with the stack frame),</span></span><br><span class="line">	<span class="comment">// framepc/sp can be used as pc/sp pair to continue a stack trace via</span></span><br><span class="line">	<span class="comment">// gentraceback().</span></span><br><span class="line">	framepc <span class="keyword">uintptr</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在函数return处，编译器会插入 runtime.deferreturn函数，该函数会从链表头处开始依次执行defer结构体所关联的延迟函数（由于是从头部开始执行，最后的defer语句会最先执行）。由于通过结构体还原运行延迟函数的上下文信息，需要运行时在初期准备一系列延迟函数所需要的上下文环境（参数，调用栈等），因此性能会有一定的损耗（大约35ns，Go 1.12 的50ns，因为1.13将_defer结构体优化到了栈上保存），而如果将这些延迟调用函数在编译时内联展开的话，则只需要大约6ns的时间。因此，Go为了让defer特性不成为性能诟病，在Go 1.14进行了opencoded的优化。<br>​<br><br><a name="A1Cgm"></a></p>
+<h1 id="opencoded优化方案"><a href="#opencoded优化方案" class="headerlink" title="opencoded优化方案"></a>opencoded优化方案</h1><p>根据 <a href="https://github.com/golang/proposal/blob/master/design/34481-opencoded-defers.md" target="_blank" rel="noopener">defer 开放代码优化提案</a> 这描述的，我们这里主要看下编译器是如何优化defer性能的。</p>
+<ul>
+<li>如果一个defer语句处于循环中的话，则无法进行优化。</li>
+<li>如果defer语句处于条件判断中（如果在编译阶段能计算出条件值的话，则if语句会被直接优化掉）的话，则需要一个defer bit来对其进行标识</li>
+</ul>
+<p><br>条件标志位的逻辑如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">defer</span> f1(a)</span><br><span class="line"><span class="keyword">if</span> cond &#123;</span><br><span class="line"> <span class="keyword">defer</span> f2(b)</span><br><span class="line">&#125;</span><br><span class="line">body...</span><br><span class="line">==========================================================================================================</span><br><span class="line">deferBits |= <span class="number">1</span>&lt;&lt;<span class="number">0</span></span><br><span class="line">tmpF1 = f1</span><br><span class="line">tmpA = a</span><br><span class="line"><span class="keyword">if</span> cond &#123;</span><br><span class="line"> deferBits |= <span class="number">1</span>&lt;&lt;<span class="number">1</span></span><br><span class="line"> tmpF2 = f2</span><br><span class="line"> tmpB = b</span><br><span class="line">&#125;</span><br><span class="line">body...</span><br><span class="line">exit:</span><br><span class="line"><span class="keyword">if</span> deferBits &amp; <span class="number">1</span>&lt;&lt;<span class="number">1</span> != <span class="number">0</span> &#123;</span><br><span class="line"> deferBits &amp;^= <span class="number">1</span>&lt;&lt;<span class="number">1</span></span><br><span class="line"> tmpF2(tmpB)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> deferBits &amp; <span class="number">1</span>&lt;&lt;<span class="number">0</span> != <span class="number">0</span> &#123;</span><br><span class="line"> deferBits &amp;^= <span class="number">1</span>&lt;&lt;<span class="number">0</span></span><br><span class="line"> tmpF1(tmpA)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>简单解释一下，就是在执行defer语句的时候，会将对应的标志位置1，并保存函数指针及其参数。当函数退出前，则会以倒序的方式检测标志位，如果标志为1，则表示需要执行相应的延迟函数，但在执行前，先把对应的标志位归0，然后再调用。<br>​<br><br><a name="B5igp"></a></p>
+<h1 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="string">"math/rand"</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> <span class="number">500</span> &gt; rand.Int()&#123;</span><br><span class="line">        <span class="keyword">defer</span> named()</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> <span class="number">600</span> &gt; rand.Int()&#123;</span><br><span class="line">        <span class="keyword">defer</span> named()</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> <span class="number">700</span> &gt; rand.Int()&#123;</span><br><span class="line">        <span class="keyword">defer</span> named()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">named</span><span class="params">()</span><span class="params">(result <span class="keyword">int</span>)</span></span>&#123;</span><br><span class="line">  result = <span class="number">1</span></span><br><span class="line">  <span class="keyword">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>准备实验代码，将三个延迟函数放入三个条件语句中。<br>首先看一下不优化是什么情况<br>go buld -gcflags=”-N -l” main.go，-N表示禁止优化 -l表示禁止内联，然后通过gdb查看汇编代码<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line">Dump of assembler code for function main.main:</span><br><span class="line">   0x00000000004633e0 &lt;+0&gt;:     lea    -0x88(%rsp),%r12</span><br><span class="line">   0x00000000004633e8 &lt;+8&gt;:     cmp    0x10(%r14),%r12</span><br><span class="line">   0x00000000004633ec &lt;+12&gt;:    jbe    0x46351f &lt;main.main+319&gt;</span><br><span class="line">   0x00000000004633f2 &lt;+18&gt;:    sub    $0x108,%rsp</span><br><span class="line">   0x00000000004633f9 &lt;+25&gt;:    mov    %rbp,0x100(%rsp)</span><br><span class="line">   0x0000000000463401 &lt;+33&gt;:    lea    0x100(%rsp),%rbp</span><br><span class="line">   0x0000000000463409 &lt;+41&gt;:    call   0x462e60 &lt;math/rand.Int&gt;</span><br><span class="line">   0x000000000046340e &lt;+46&gt;:    mov    %rax,0x8(%rsp)</span><br><span class="line">   0x0000000000463413 &lt;+51&gt;:    cmp    $0x1f4,%rax</span><br><span class="line">   0x0000000000463419 &lt;+57&gt;:    jl     0x46341d &lt;main.main+61&gt;</span><br><span class="line">   0x000000000046341b &lt;+59&gt;:    jmp    0x463463 &lt;main.main+131&gt;</span><br><span class="line">   0x000000000046341d &lt;+61&gt;:    movl   $0x0,0xb0(%rsp)</span><br><span class="line">   0x0000000000463428 &lt;+72&gt;:    lea    0x19c39(%rip),%rcx        # 0x47d068</span><br><span class="line">   0x000000000046342f &lt;+79&gt;:    mov    %rcx,0xc8(%rsp)</span><br><span class="line">   0x0000000000463437 &lt;+87&gt;:    lea    0xb0(%rsp),%rax</span><br><span class="line">   0x000000000046343f &lt;+95&gt;:    nop</span><br><span class="line">   0x0000000000463440 &lt;+96&gt;:    call   0x42b380 &lt;runtime.deferprocStack&gt;</span><br><span class="line">   0x0000000000463445 &lt;+101&gt;:   test   %eax,%eax</span><br><span class="line">   0x0000000000463447 &lt;+103&gt;:   jne    0x46344d &lt;main.main+109&gt;</span><br><span class="line">   0x0000000000463449 &lt;+105&gt;:   jmp    0x46344b &lt;main.main+107&gt;</span><br><span class="line">   0x000000000046344b &lt;+107&gt;:   jmp    0x463465 &lt;main.main+133&gt;</span><br><span class="line">   0x000000000046344d &lt;+109&gt;:   nop</span><br><span class="line">   0x000000000046344e &lt;+110&gt;:   call   0x42bfe0 &lt;runtime.deferreturn&gt;</span><br><span class="line">   0x0000000000463453 &lt;+115&gt;:   mov    0x100(%rsp),%rbp</span><br><span class="line">   0x000000000046345b &lt;+123&gt;:   add    $0x108,%rsp</span><br><span class="line">   0x0000000000463462 &lt;+130&gt;:   ret    </span><br><span class="line">   0x0000000000463463 &lt;+131&gt;:   jmp    0x463465 &lt;main.main+133&gt;</span><br><span class="line">   0x0000000000463465 &lt;+133&gt;:   call   0x462e60 &lt;math/rand.Int&gt;</span><br><span class="line">   0x000000000046346a &lt;+138&gt;:   mov    %rax,0x8(%rsp)</span><br><span class="line">   0x000000000046346f &lt;+143&gt;:   cmp    $0x258,%rax</span><br><span class="line">   0x0000000000463475 &lt;+149&gt;:   jl     0x463479 &lt;main.main+153&gt;</span><br><span class="line">   0x0000000000463477 &lt;+151&gt;:   jmp    0x4634b5 &lt;main.main+213&gt;</span><br><span class="line">   0x0000000000463479 &lt;+153&gt;:   movl   $0x0,0x60(%rsp)</span><br><span class="line">   0x0000000000463481 &lt;+161&gt;:   lea    0x19be8(%rip),%rcx        # 0x47d070</span><br><span class="line">   0x0000000000463488 &lt;+168&gt;:   mov    %rcx,0x78(%rsp)</span><br><span class="line">   0x000000000046348d &lt;+173&gt;:   lea    0x60(%rsp),%rax</span><br><span class="line">   0x0000000000463492 &lt;+178&gt;:   call   0x42b380 &lt;runtime.deferprocStack&gt;</span><br><span class="line">   0x0000000000463497 &lt;+183&gt;:   test   %eax,%eax</span><br><span class="line">   0x0000000000463499 &lt;+185&gt;:   jne    0x46349f &lt;main.main+191&gt;</span><br><span class="line">   0x000000000046349b &lt;+187&gt;:   jmp    0x46349d &lt;main.main+189&gt;</span><br><span class="line">   0x000000000046349d &lt;+189&gt;:   jmp    0x4634b7 &lt;main.main+215&gt;</span><br><span class="line">   0x000000000046349f &lt;+191&gt;:   nop</span><br><span class="line">   0x00000000004634a0 &lt;+192&gt;:   call   0x42bfe0 &lt;runtime.deferreturn&gt;</span><br><span class="line">   0x00000000004634a5 &lt;+197&gt;:   mov    0x100(%rsp),%rbp</span><br><span class="line">   0x00000000004634ad &lt;+205&gt;:   add    $0x108,%rsp</span><br><span class="line">   0x00000000004634b4 &lt;+212&gt;:   ret    </span><br><span class="line">   0x00000000004634b5 &lt;+213&gt;:   jmp    0x4634b7 &lt;main.main+215&gt;</span><br><span class="line">   0x00000000004634b7 &lt;+215&gt;:   call   0x462e60 &lt;math/rand.Int&gt;</span><br><span class="line">   0x00000000004634bc &lt;+220&gt;:   mov    %rax,0x8(%rsp)</span><br><span class="line">   0x00000000004634c1 &lt;+225&gt;:   cmp    $0x2bc,%rax</span><br><span class="line">   0x00000000004634c7 &lt;+231&gt;:   jl     0x4634cb &lt;main.main+235&gt;</span><br><span class="line">   0x00000000004634c9 &lt;+233&gt;:   jmp    0x463507 &lt;main.main+295&gt;</span><br><span class="line">   0x00000000004634cb &lt;+235&gt;:   movl   $0x0,0x10(%rsp)</span><br><span class="line">   0x00000000004634d3 &lt;+243&gt;:   lea    0x19b9e(%rip),%rcx        # 0x47d078</span><br><span class="line">   0x00000000004634da &lt;+250&gt;:   mov    %rcx,0x28(%rsp)</span><br><span class="line">   0x00000000004634df &lt;+255&gt;:   lea    0x10(%rsp),%rax</span><br><span class="line">   0x00000000004634e4 &lt;+260&gt;:   call   0x42b380 &lt;runtime.deferprocStack&gt;</span><br><span class="line">   0x00000000004634e9 &lt;+265&gt;:   test   %eax,%eax</span><br><span class="line">   0x00000000004634eb &lt;+267&gt;:   jne    0x4634f1 &lt;main.main+273&gt;</span><br><span class="line">   0x00000000004634ed &lt;+269&gt;:   jmp    0x4634ef &lt;main.main+271&gt;</span><br><span class="line">   0x00000000004634ef &lt;+271&gt;:   jmp    0x463509 &lt;main.main+297&gt;</span><br><span class="line">   0x00000000004634f1 &lt;+273&gt;:   nop</span><br><span class="line">   0x00000000004634f2 &lt;+274&gt;:   call   0x42bfe0 &lt;runtime.deferreturn&gt;</span><br><span class="line">   0x00000000004634f7 &lt;+279&gt;:   mov    0x100(%rsp),%rbp</span><br><span class="line">   0x00000000004634ff &lt;+287&gt;:   add    $0x108,%rsp</span><br><span class="line">   0x0000000000463506 &lt;+294&gt;:   ret    </span><br><span class="line">   0x0000000000463507 &lt;+295&gt;:   jmp    0x463509 &lt;main.main+297&gt;</span><br><span class="line">   0x0000000000463509 &lt;+297&gt;:   nop</span><br><span class="line">   0x000000000046350a &lt;+298&gt;:   call   0x42bfe0 &lt;runtime.deferreturn&gt;</span><br><span class="line">   0x000000000046350f &lt;+303&gt;:   mov    0x100(%rsp),%rbp</span><br><span class="line">   0x0000000000463517 &lt;+311&gt;:   add    $0x108,%rsp</span><br><span class="line">   0x000000000046351e &lt;+318&gt;:   ret    </span><br><span class="line">   0x000000000046351f &lt;+319&gt;:   nop</span><br><span class="line">   0x0000000000463520 &lt;+320&gt;:   call   0x4554c0 &lt;runtime.morestack_noctxt&gt;</span><br><span class="line">   0x0000000000463525 &lt;+325&gt;:   jmp    0x4633e0 &lt;main.main&gt;</span><br><span class="line">End of assembler dump.</span><br></pre></td></tr></table></figure></p>
+<p>这里可以看到 96，178，260处均调用了runtime.deferprocStack,此函数将会构造_defer结构体并加入defer链表。<br>再来看一下优化后的代码是什么情况：go buld main.go，（不加 -gcflags=”-N -l”参数），优化后的汇编代码：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br></pre></td><td class="code"><pre><span class="line">Dump of assembler code for function main.main:</span><br><span class="line"><span class="meta">   #</span><span class="bash"> 栈检查，不够则跳转至动态扩容处</span></span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x0000000000463300 &lt;+0&gt;:     cmp    0x10(%r14),%rsp</span><br><span class="line">   0x0000000000463304 &lt;+4&gt;:     jbe    0x46340f &lt;main.main+271&gt;</span><br><span class="line">   </span><br><span class="line"><span class="meta">   #</span><span class="bash"> main函数栈帧40字节</span></span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x000000000046330a &lt;+10&gt;:    sub    $0x30,%rsp                # 栈顶调整</span><br><span class="line">   0x000000000046330e &lt;+14&gt;:    mov    %rbp,0x28(%rsp)           # 保存栈底旧值</span><br><span class="line">   0x0000000000463313 &lt;+19&gt;:    lea    0x28(%rsp),%rbp           # 栈底调整</span><br><span class="line">   </span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x0000000000463318 &lt;+24&gt;:    movups %xmm15,0x10(%rsp)</span><br><span class="line">   0x000000000046331e &lt;+30&gt;:    movups %xmm15,0x18(%rsp)</span><br><span class="line">   </span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x0000000000463324 &lt;+36&gt;:    movb   $0x0,0x7(%rsp)            # 0x7（第8个字节）处，置0，该字节为 defer bit</span><br><span class="line">   </span><br><span class="line"><span class="meta">   #</span><span class="bash"> 第一个<span class="keyword">if</span>， <span class="keyword">if</span> 500 &gt; rand.Int(), 如果随机数大于等于500，则直接跳转至76行</span></span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x0000000000463329 &lt;+41&gt;:    call   0x462d80 &lt;math/rand.Int&gt;</span><br><span class="line">   0x000000000046332e &lt;+46&gt;:    mov    %rax,0x8(%rsp)</span><br><span class="line">   0x0000000000463333 &lt;+51&gt;:    cmp    $0x1f4,%rax</span><br><span class="line">   0x0000000000463339 &lt;+57&gt;:    jge    0x46334c &lt;main.main+76&gt;</span><br><span class="line">   </span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x000000000046333b &lt;+59&gt;:    lea    0x19d16(%rip),%rcx        # 0x47d058</span><br><span class="line">   0x0000000000463342 &lt;+66&gt;:    mov    %rcx,0x20(%rsp)</span><br><span class="line">   </span><br><span class="line"><span class="meta">   #</span><span class="bash"> 将defer bit 第一位置1</span></span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x0000000000463347 &lt;+71&gt;:    movb   $0x1,0x7(%rsp)            # 0x7处的值为  00000001</span><br><span class="line">   </span><br><span class="line">   第二个if, if 600 &gt; rand.Int()</span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x000000000046334c &lt;+76&gt;:    call   0x462d80 &lt;math/rand.Int&gt;</span><br><span class="line">   0x0000000000463351 &lt;+81&gt;:    mov    0x8(%rsp),%rcx            # 注意0x8留存的是第一个rand的结果（46行）</span><br><span class="line">   0x0000000000463356 &lt;+86&gt;:    cmp    $0x1f4,%rcx               # 这里又进行一次和（500）的比较，是不是还有优化的空间？</span><br><span class="line">   0x000000000046335d &lt;+93&gt;:    setl   %cl                       # 如果rcx小于500，则cl置为1</span><br><span class="line">   0x0000000000463360 &lt;+96&gt;:    cmp    $0x258,%rax               # 第二个rand的值和600比较</span><br><span class="line">   0x0000000000463366 &lt;+102&gt;:   jge    0x46337b &lt;main.main+123&gt;  # 如果大于等于600则直接跳至123行</span><br><span class="line">   </span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x0000000000463368 &lt;+104&gt;:   lea    0x19cf1(%rip),%rax        # 0x47d060</span><br><span class="line">   0x000000000046336f &lt;+111&gt;:   mov    %rax,0x18(%rsp)</span><br><span class="line">   </span><br><span class="line"><span class="meta">   #</span><span class="bash"> 将第二个bit位置1</span></span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x0000000000463374 &lt;+116&gt;:   or     $0x2,%ecx                 # exc = 00000010 | ecx</span><br><span class="line">   0x0000000000463377 &lt;+119&gt;:   mov    %cl,0x7(%rsp)             # 0x7 存储defer bit</span><br><span class="line">   0x000000000046337b &lt;+123&gt;:   mov    %cl,0x6(%rsp)             # 0x6 存储defer bit</span><br><span class="line">   </span><br><span class="line"><span class="meta">   #</span><span class="bash"> 第三个<span class="keyword">if</span>,  <span class="keyword">if</span> 700 &gt; rand.Int()</span></span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x000000000046337f &lt;+127&gt;:   nop</span><br><span class="line">   0x0000000000463380 &lt;+128&gt;:   call   0x462d80 &lt;math/rand.Int&gt;</span><br><span class="line">   0x0000000000463385 &lt;+133&gt;:   cmp    $0x2bc,%rax</span><br><span class="line">   0x000000000046338b &lt;+139&gt;:   jge    0x4633a7 &lt;main.main+167&gt;</span><br><span class="line">   </span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x000000000046338d &lt;+141&gt;:   lea    0x19cd4(%rip),%rax        # 0x47d068</span><br><span class="line">   0x0000000000463394 &lt;+148&gt;:   mov    %rax,0x10(%rsp)</span><br><span class="line">   </span><br><span class="line"><span class="meta">   #</span><span class="bash"> 将第三个bit位置1</span></span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x0000000000463399 &lt;+153&gt;:   movzbl 0x6(%rsp),%ecx            # 移动8(b)位至32(l)位，高24位用0(z:zero)补齐</span><br><span class="line">   0x000000000046339e &lt;+158&gt;:   or     $0x4,%ecx                 # ecx = 00000100 | ecx</span><br><span class="line">   0x00000000004633a1 &lt;+161&gt;:   mov    %cl,0x7(%rsp)             # 此时 0x7保存着defer bit标识着三个if都进行了处理了</span><br><span class="line">   0x00000000004633a5 &lt;+165&gt;:   jmp    0x4633ac &lt;main.main+172&gt;</span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x00000000004633a7 &lt;+167&gt;:   movzbl 0x6(%rsp),%ecx            # 移动8(b)位至32(l)位，高24位用0(z:zero)补齐</span><br><span class="line">   </span><br><span class="line"><span class="meta">   #</span><span class="bash"> 如果第3个bit为0，则跳过dwrap·3的调用</span></span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x00000000004633ac &lt;+172&gt;:   test   $0x4,%cl                  </span><br><span class="line">   0x00000000004633af &lt;+175&gt;:   je     0x4633ca &lt;main.main+202&gt;  </span><br><span class="line">   </span><br><span class="line"><span class="meta">   #</span><span class="bash"> 调用main.main·dwrap·3</span></span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x00000000004633b1 &lt;+177&gt;:   and    $0xfffffffb,%ecx          # ecx = 1011 &amp; ecx  执行之前先将第3位置0</span><br><span class="line">   0x00000000004633b4 &lt;+180&gt;:   mov    %cl,0x6(%rsp)             # 0x6 保存 defer bit</span><br><span class="line">   0x00000000004633b8 &lt;+184&gt;:   mov    %cl,0x7(%rsp)             # 0x7 保存 defer bit  </span><br><span class="line">   0x00000000004633bc &lt;+188&gt;:   nopl   0x0(%rax)        </span><br><span class="line">   0x00000000004633c0 &lt;+192&gt;:   call   0x463500 &lt;main.main·dwrap·3&gt;</span><br><span class="line">   0x00000000004633c5 &lt;+197&gt;:   movzbl 0x6(%rsp),%ecx</span><br><span class="line">   </span><br><span class="line"><span class="meta">   #</span><span class="bash"> 如果第2个bit为0，则跳过dwrap·2的调用</span></span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x00000000004633ca &lt;+202&gt;:   test   $0x2,%cl</span><br><span class="line">   0x00000000004633cd &lt;+205&gt;:   je     0x4633e4 &lt;main.main+228&gt;</span><br><span class="line">   </span><br><span class="line"><span class="meta">   #</span><span class="bash"> 调用main.main·dwrap·2</span></span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x00000000004633cf &lt;+207&gt;:   and    $0xfffffffd,%ecx          # ecx = 1101 &amp; ecx  执行之前先将第2位置0</span><br><span class="line">   0x00000000004633d2 &lt;+210&gt;:   mov    %cl,0x6(%rsp)             # 0x6 保存 defer bit </span><br><span class="line">   0x00000000004633d6 &lt;+214&gt;:   mov    %cl,0x7(%rsp)             # 0x7 保存 defer bit</span><br><span class="line">   0x00000000004633da &lt;+218&gt;:   call   0x4634a0 &lt;main.main·dwrap·2&gt;</span><br><span class="line">   0x00000000004633df &lt;+223&gt;:   movzbl 0x6(%rsp),%ecx</span><br><span class="line">   </span><br><span class="line"><span class="meta">   #</span><span class="bash"> 如果第1个bit为0，则跳过dwrap·1的调用</span></span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x00000000004633e4 &lt;+228&gt;:   test   $0x1,%cl</span><br><span class="line">   0x00000000004633e7 &lt;+231&gt;:   je     0x4633f5 &lt;main.main+245&gt;</span><br><span class="line">   </span><br><span class="line"><span class="meta">   #</span><span class="bash"> 调用main.main·dwrap·1</span></span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x00000000004633e9 &lt;+233&gt;:   and    $0xfffffffe,%ecx           # ecx = 1110 &amp; ecx  执行之前先将第1位置0</span><br><span class="line">   0x00000000004633ec &lt;+236&gt;:   mov    %cl,0x7(%rsp)              # 0x7 保存 defer bit</span><br><span class="line">   0x00000000004633f0 &lt;+240&gt;:   call   0x463440 &lt;main.main·dwrap·1&gt;</span><br><span class="line">   </span><br><span class="line"><span class="meta">   #</span><span class="bash"> main函数返回</span></span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x00000000004633f5 &lt;+245&gt;:   mov    0x28(%rsp),%rbp            # 栈底调整     </span><br><span class="line">   0x00000000004633fa &lt;+250&gt;:   add    $0x30,%rsp                 # 栈顶调整</span><br><span class="line">   0x00000000004633fe &lt;+254&gt;:   ret    </span><br><span class="line">   </span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x00000000004633ff &lt;+255&gt;:   nop</span><br><span class="line">   0x0000000000463400 &lt;+256&gt;:   call   0x42bf20 &lt;runtime.deferreturn&gt;</span><br><span class="line">   </span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x0000000000463405 &lt;+261&gt;:   mov    0x28(%rsp),%rbp</span><br><span class="line">   0x000000000046340a &lt;+266&gt;:   add    $0x30,%rsp</span><br><span class="line">   0x000000000046340e &lt;+270&gt;:   ret</span><br><span class="line">   </span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x000000000046340f &lt;+271&gt;:   call   0x455400 &lt;runtime.morestack_noctxt&gt;</span><br><span class="line">   0x0000000000463414 &lt;+276&gt;:   jmp    0x463300 &lt;main.main&gt;</span><br><span class="line">End of assembler dump.</span><br></pre></td></tr></table></figure></p>
+<p>我们看一下main函数的执行逻辑，从以上代码可以看出，在0x7这个位置的字节上，保存的应该就是我们提到的defer bit标志数据。这里我们并没有看到runtime.deferproc或者是runtime.deferprocStack调用，表明延迟函数确实被编译时展开了。而每个条件判断成立时，则会设置相应的标志位，我们以第二个条件为例：<br>​<br><br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">0x0000000000463360 &lt;+96&gt;:    cmp    $0x258,%rax               # 第二个rand的值和600比较</span><br><span class="line">0x0000000000463366 &lt;+102&gt;:   jge    0x46337b &lt;main.main+123&gt;  # 如果大于等于600则直接跳至123行</span><br></pre></td></tr></table></figure></p>
+<p>可以看到如果随机数大于等于600时，则会跳过第二个bit的设置：(116行)，则该位的值还是0<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">0x0000000000463374 &lt;+116&gt;:   or     $0x2,%ecx                 # exc = 00000010 | ecx</span><br><span class="line">0x0000000000463377 &lt;+119&gt;:   mov    %cl,0x7(%rsp)             # 0x7 存储defer bit</span><br><span class="line">0x000000000046337b &lt;+123&gt;:   mov    %cl,0x6(%rsp)             # 0x6 存储defer bit</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p> 疑问：为啥这里还要有一个0x6来保存一下defer bit？</p>
+</blockquote>
+<p>而接下来，在函数ret前，被插入的代码则是以倒序的方式检测每个标志位 0x4-&gt;0x2-&gt;0x1, 看下0x2标志位是如何检测的：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">0x00000000004633ca &lt;+202&gt;:   test   $0x2,%cl</span><br><span class="line">0x00000000004633cd &lt;+205&gt;:   je     0x4633e4 &lt;main.main+228&gt;</span><br></pre></td></tr></table></figure></p>
+<p>此时cl保存着defer bit，test指令将两个操作数执行逻辑与操作，如果cl的第二位为1，则zf寄存器则为0，则je条件不成立，则不会进行跳转，因为接下来的指令正是对第二个延迟函数的调用：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">0x00000000004633cf &lt;+207&gt;:   and    $0xfffffffd,%ecx          # ecx = 1101 &amp; ecx  执行之前先将第2位置0</span><br><span class="line">0x00000000004633d2 &lt;+210&gt;:   mov    %cl,0x6(%rsp)             # 0x6 保存 defer bit </span><br><span class="line">0x00000000004633d6 &lt;+214&gt;:   mov    %cl,0x7(%rsp)             # 0x7 保存 defer bit</span><br><span class="line">0x00000000004633da &lt;+218&gt;:   call   0x4634a0 &lt;main.main·dwrap·2&gt;</span><br><span class="line">0x00000000004633df &lt;+223&gt;:   movzbl 0x6(%rsp),%ecx</span><br></pre></td></tr></table></figure></p>
+<p>在真正的调用之前，会先将第二个bit置成0。然后在218处调用main.main·dwrap·2函数，我们再展开该函数：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">Dump of assembler code for function main.main·dwrap·2:</span><br><span class="line"><span class="meta">   #</span><span class="bash"> 栈检查，不够则跳转至动态扩容处</span></span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x0000000000463440 &lt;+0&gt;:     cmp    0x10(%r14),%rsp</span><br><span class="line">   0x0000000000463444 &lt;+4&gt;:     jbe    0x46346e &lt;main.main·dwrap·2+46&gt;</span><br><span class="line">   </span><br><span class="line"><span class="meta">   #</span><span class="bash"> main.main·dwrap·2 栈帧 0字节</span></span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x0000000000463446 &lt;+6&gt;:     sub    $0x8,%rsp                   # 调整栈顶</span><br><span class="line">   0x000000000046344a &lt;+10&gt;:    mov    %rbp,(%rsp)                 # 保留栈底旧值 </span><br><span class="line">   0x000000000046344e &lt;+14&gt;:    lea    (%rsp),%rbp                 # 栈底调整  </span><br><span class="line">   </span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x0000000000463452 &lt;+18&gt;:    mov    0x20(%r14),%r12</span><br><span class="line">   0x0000000000463456 &lt;+22&gt;:    test   %r12,%r12                         </span><br><span class="line">   0x0000000000463459 &lt;+25&gt;:    jne    0x463475 &lt;main.main·dwrap·2+53&gt;  # r12 &gt; 0</span><br><span class="line">   </span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x000000000046345b &lt;+27&gt;:    nopl   0x0(%rax,%rax,1)</span><br><span class="line">   0x0000000000463460 &lt;+32&gt;:    call   0x463420 &lt;main.named&gt;</span><br><span class="line">   </span><br><span class="line"><span class="meta">   #</span><span class="bash"> 回收  main.main·dwrap·2 栈帧</span></span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x0000000000463465 &lt;+37&gt;:    mov    (%rsp),%rbp</span><br><span class="line">   0x0000000000463469 &lt;+41&gt;:    add    $0x8,%rsp</span><br><span class="line">   0x000000000046346d &lt;+45&gt;:    ret    </span><br><span class="line">   </span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x000000000046346e &lt;+46&gt;:    call   0x455400 &lt;runtime.morestack_noctxt&gt;</span><br><span class="line">   0x0000000000463473 &lt;+51&gt;:    jmp    0x463440 &lt;main.main·dwrap·2&gt;</span><br><span class="line">   </span><br><span class="line">   ==============================================================================================</span><br><span class="line">   0x0000000000463475 &lt;+53&gt;:    lea    0x10(%rsp),%r13</span><br><span class="line">   0x000000000046347a &lt;+58&gt;:    nopw   0x0(%rax,%rax,1)</span><br><span class="line">   0x0000000000463480 &lt;+64&gt;:    cmp    %r13,(%r12)    </span><br><span class="line">   0x0000000000463484 &lt;+68&gt;:    jne    0x46345b &lt;main.main·dwrap·2+27&gt;</span><br><span class="line">   0x0000000000463486 &lt;+70&gt;:    mov    %rsp,(%r12)</span><br><span class="line">   0x000000000046348a &lt;+74&gt;:    jmp    0x46345b &lt;main.main·dwrap·2+27&gt;</span><br><span class="line">End of assembler dump.</span><br></pre></td></tr></table></figure></p>
+<p>可以看到，无论何种情况，都会最终调用真正的main.named这个函数</p>
+<ul>
+<li>25 -&gt; 53 -&gt; 68 -&gt; 27 -&gt; 32(main.named)</li>
+<li>25 -&gt; 53 -&gt; 74 -&gt; 27 -&gt; 32(main.named)</li>
+<li>25 -&gt; 27 -&gt; 32(main.named)</li>
+</ul>
+<p>最后展开main.named，看到确实是 return 1(通过eax寄存器返回)<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Dump of assembler code for function main.named:</span><br><span class="line">   0x0000000000463420 &lt;+0&gt;:     mov    $0x1,%eax</span><br><span class="line">   0x0000000000463425 &lt;+5&gt;:     ret    </span><br><span class="line">End of assembler dump.</span><br></pre></td></tr></table></figure></p>
+<p><a name="PRBgE"></a></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p><a name="cdYpa"></a></p>
+<h3 id="标志位的变化"><a href="#标志位的变化" class="headerlink" title="标志位的变化"></a>标志位的变化</h3><p>最后我们来看一下defer bit标志位数据变化的情况，我们假设三个if条件全部成立：<br>0000 -&gt; rand.Int() -&gt; 0001 -&gt; rand.Int() -&gt; 0011 -&gt; rand.Int() -&gt; 0111 -&gt; named() -&gt; 0011 -&gt; named() -&gt; 0001 -&gt; named() -&gt; 0000<br><a name="sklpE"></a></p>
+<h3 id="免去defer链表递归调用"><a href="#免去defer链表递归调用" class="headerlink" title="免去defer链表递归调用"></a>免去defer链表递归调用</h3><p>从实验代码可以看出，优化后的代码并没有出现runtime.deferproc或runtime.deferprocStack调用，最后函数返回时，也跳过了runtime.deferreturn的调用，我们知道一旦进入defer链表的递归调用（runtime.jmpdefer 尾递归）后，因为维护延迟函数的上下文环境需要花费非常多的指令，（defer结构体的创建和销毁等操作）这也是早期Go版本的defer特性被人诟病性能低下的重要原因。<br>​</p>
+<p>经过开放代码优化后，我们可以看到这和直接调用函数的性能相差无几（多了标志位的维护），当然这里我们还可以看到deferbit只有一个字节也就是8位，因此我们最多支持8个defer语句，超过8将会回到defer链表模式（循环中的defer无法优化）。<br><br><br>（实验环境go1.17.2 linux/amd64）<br>                                                                                                                  </p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2019/08/17/talk-about-goroutine/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">被“饿死的”goroutine</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">分享到：</span>
+		<a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<a class="jiathis_button_tumblr"></a>
+		<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
+
+
+
+<div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="go defer opencoded" data-title="Go defer opencoded" data-url="http://yoursite.com/2021/10/29/go%20defer%20opencoded/"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"true"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2021 Dockerfun
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: true,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+
+<script src="http://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  </div>
+</body>
+</html>

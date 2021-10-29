@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Go Data Structures Interfaces | shareinto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="go对我而言其最令人激动的地方就是接口的设计，例如静态类型、编译时检查。如果非要让我将go的一个特性运用到其它语言的设计当中，那一定非接口莫属。 这篇文章描述了我对接口值在“ GC ”的编译器的实现。 Ian Lance Taylor已经写了两篇关于接口值在gccgo中如何实现的文章。这篇文章与其大同小异：最大的区别是，本文有图片。 Usgaego接口的使用让你感觉像是在用python这样纯粹的动">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Go Data Structures Interfaces">
+<meta property="og:url" content="http://yoursite.com/2016/03/08/GoDataStructures-Interfaces/index.html">
+<meta property="og:site_name" content="shareinto">
+<meta property="og:description" content="go对我而言其最令人激动的地方就是接口的设计，例如静态类型、编译时检查。如果非要让我将go的一个特性运用到其它语言的设计当中，那一定非接口莫属。 这篇文章描述了我对接口值在“ GC ”的编译器的实现。 Ian Lance Taylor已经写了两篇关于接口值在gccgo中如何实现的文章。这篇文章与其大同小异：最大的区别是，本文有图片。 Usgaego接口的使用让你感觉像是在用python这样纯粹的动">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/image/gointer1.png">
+<meta property="og:image" content="http://yoursite.com/image/gointer2.png">
+<meta property="og:image" content="http://yoursite.com/image/gointer3.png">
+<meta property="og:image" content="http://yoursite.com/image/gointer4.png">
+<meta property="article:published_time" content="2016-03-08T08:20:48.000Z">
+<meta property="article:modified_time" content="2019-02-03T09:20:19.071Z">
+<meta property="article:author" content="Dockerfun">
+<meta property="article:tag" content="go">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/image/gointer1.png">
+  
+    <link rel="alternative" href="/atom.xml" title="shareinto" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+			<img lazy-src="/image/litten.png" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/"></a></h1>
+		</hgroup>
+
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						<div class="icon-wrap icon-link hide" data-idx="2">
+							<div class="loopback_l"></div>
+							<div class="loopback_r"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						<li>友情链接</li>
+						
+						
+						<li>关于我</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="#" title="github">github</a>
+					        
+								<a class="weibo" target="_blank" href="#" title="weibo">weibo</a>
+					        
+								<a class="rss" target="_blank" href="#" title="rss">rss</a>
+					        
+								<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/algorithm/" style="font-size: 10px;">algorithm</a> <a href="/tags/centos/" style="font-size: 16px;">centos</a> <a href="/tags/cpu/" style="font-size: 10px;">cpu</a> <a href="/tags/docker/" style="font-size: 20px;">docker</a> <a href="/tags/docker-compose/" style="font-size: 10px;">docker-compose</a> <a href="/tags/git/" style="font-size: 10px;">git</a> <a href="/tags/git-flow/" style="font-size: 10px;">git-flow</a> <a href="/tags/go/" style="font-size: 14px;">go</a> <a href="/tags/ios/" style="font-size: 10px;">ios</a> <a href="/tags/java/" style="font-size: 14px;">java</a> <a href="/tags/kernel/" style="font-size: 12px;">kernel</a> <a href="/tags/kubernetes/" style="font-size: 18px;">kubernetes</a> <a href="/tags/linux/" style="font-size: 20px;">linux</a> <a href="/tags/performance/" style="font-size: 10px;">performance</a> <a href="/tags/thread/" style="font-size: 10px;">thread</a> <a href="/tags/tool/" style="font-size: 10px;">tool</a> <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" style="font-size: 16px;">操作系统</a> <a href="/tags/%E6%95%88%E7%8E%87/" style="font-size: 10px;">效率</a>
+					</div>
+				</section>
+				
+				
+				
+				<section class="switch-part switch-part3">
+					<div id="js-friends">
+					
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">奥巴马的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">卡卡的美丽传说</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">本泽马的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">吉格斯的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">习大大大不同</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">托蒂的博客</a>
+			        
+			        </div>
+				</section>
+				
+
+				
+				
+				<section class="switch-part switch-part4">
+				
+					<div id="js-aboutme">虽然不知道你在说什么，但是感觉好厉害的样子...</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide"></h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="/image/litten.png" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author"></h1>
+			</hgroup>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="#" title="github">github</a>
+			        
+						<a class="weibo" target="_blank" href="#" title="weibo">weibo</a>
+			        
+						<a class="rss" target="_blank" href="#" title="rss">rss</a>
+			        
+						<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-GoDataStructures-Interfaces" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/03/08/GoDataStructures-Interfaces/" class="article-date">
+  	<time datetime="2016-03-08T08:20:48.000Z" itemprop="datePublished">2016-03-08</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Go Data Structures Interfaces
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/go/" rel="tag">go</a></li></ul>
+	</div>
+
+        
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>go对我而言其最令人激动的地方就是接口的设计，例如静态类型、编译时检查。如果非要让我将go的一个特性运用到其它语言的设计当中，那一定非接口莫属。</p>
+<p>这篇文章描述了我对接口值在“ GC ”的编译器的实现。 Ian Lance Taylor已经写了两篇关于接口值在gccgo中如何实现的文章。这篇文章与其大同小异：最大的区别是，本文有图片。</p>
+<h2 id="Usgae"><a href="#Usgae" class="headerlink" title="Usgae"></a><strong>Usgae</strong></h2><p>go接口的使用让你感觉像是在用python这样纯粹的动态语言一样，但不同的是仍然有编译器帮你进行静态检查，例如传了一个int型变量给Read方法，或者给Read方法传了错误的参数个数。要使用go的接口，首先得定义一个接口类型(比如下面的ReadCloser)<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> ReadCloser <span class="keyword">interface</span> &#123;</span><br><span class="line">    Read(b []<span class="keyword">byte</span>) (n <span class="keyword">int</span>, err os.Error)</span><br><span class="line">    Close()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>然后定义一个带有ReadCloser参数的函数。例如，下面这个函数通过循环调用Read方法获取所有的请求数据，然后再调用Close方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ReadAndClose</span><span class="params">(r ReadCloser, buf []<span class="keyword">byte</span>)</span> <span class="params">(n <span class="keyword">int</span>, err os.Error)</span></span> &#123;</span><br><span class="line">    <span class="keyword">for</span> <span class="built_in">len</span>(buf) &gt; <span class="number">0</span> &amp;&amp; err == <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">var</span> nr <span class="keyword">int</span></span><br><span class="line">        nr, err = r.Read(buf)</span><br><span class="line">        n += nr</span><br><span class="line">        buf = buf[nr:]</span><br><span class="line">    &#125;</span><br><span class="line">    r.Close()</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>调用ReadAndClose函数的时候，只要任何实现了Read和Close方法的类型，都可以作为该函数的第一个参数传递进去。而且不像python，如果你传递了一个错误的类型，那么编译器就会报告类型错误，而不是等到运行时才报错。</p>
+<p>当然，接口并不局限于静态检查，你也可以在运行时动态的检查一个接口的实际类型。例如：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Stringer <span class="keyword">interface</span> &#123;</span><br><span class="line">    String() <span class="keyword">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ToString</span><span class="params">(any <span class="keyword">interface</span>&#123;&#125;)</span> <span class="title">string</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> v, ok := any.(Stringer); ok &#123;</span><br><span class="line">        <span class="keyword">return</span> v.String()</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">switch</span> v := any.(<span class="keyword">type</span>) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="keyword">int</span>:</span><br><span class="line">        <span class="keyword">return</span> strconv.Itoa(v)</span><br><span class="line">    <span class="keyword">case</span> float:</span><br><span class="line">        <span class="keyword">return</span> strconv.Ftoa(v, <span class="string">'g'</span>, <span class="number">-1</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"???"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>any参数的类型是interface{}，即该接口没有任何的方法，这意味着它可以接收任何类型的参数。在if语句中的”comma ok”表达式尝试将any转成Stringer接口类型，这个接口类型包含了String方法，如果转换成功，在if的中括号内，将调用String方法获取字符串值并返回回去。如果转换失败，在接下来的的switch语句中，又验证了了两个基础类型。这个函数就像是<a href="https://golang.org/pkg/fmt/" target="_blank" rel="noopener">fmt包</a>的一个精简版的实现。（这里那个if语句实际上可以转化为case Stringer放到swtich顶部中去，这里为了演示故意写成这样）</p>
+<p>举一个简单的例子:考虑定义一个底层类型为unit64的Binary类型，并为它写一个String()方法和Get()方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Binary <span class="keyword">uint64</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(i Binary)</span> <span class="title">String</span><span class="params">()</span> <span class="title">string</span></span> &#123;</span><br><span class="line">    <span class="keyword">return</span> strconv.Uitob64(i.Get(), <span class="number">2</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(i Binary)</span> <span class="title">Get</span><span class="params">()</span> <span class="title">uint64</span></span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">uint64</span>(i)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>假设将类型为Binary的值传给ToString函数，那么在ToString内部将调用String方法并返回。在程序运行的过程中，运行时知道Binary类型有String方法，所以，程序认为它实现了Stringer接口。这是一种奇妙的设计，因为有时候甚至连Binary的作者都不知道Stringer接口的存在。</p>
+<p>以上这些例子表明即使所有的隐式转换是在编译时进行检查，显示的接口到接口的转换也可以在运行时进行。<a href="https://golang.org/doc/effective_go.html#interfaces" target="_blank" rel="noopener">Effective Go</a>有更多关于接口的详细例子。</p>
+<h2 id="Interface-Values"><a href="#Interface-Values" class="headerlink" title="Interface Values"></a><strong>Interface Values</strong></h2><p>拥有方法的语言通常分为两大阵营：</p>
+<ul>
+<li>拥有方法表的静态语言（如C++和Java）</li>
+<li>每次调用都进行方法地址查询的动态语言（如Smalltalk和它的众多模仿者、javascript和python等，有的会通过缓存提高它调用的效率）。<br>Go则位于两者的中间，它拥有方法表，但却是在运行时计算它们。我不知道go是不是第一个使用该技术的语言，但这种方式肯定是不常见的。</li>
+</ul>
+<p>举个例子,一个Binary类型的值是一个64位整型，它由两个32位的字组成（假设我们现在使用的是32位的机器）</p>
+<p><img src="/image/gointer1.png" alt></p>
+<p>Interface由两个字长组成，其中一个存储指向接口类型表的指针，另一个存储指向数据的指针。如果将b赋值给一个Stringer类型的接口变量，其内存结构如下图所示</p>
+<p><img src="/image/gointer2.png" alt></p>
+<p>(接口中存储的指针对程序是不可见的，它不会直接暴露给用户)</p>
+<p>第一个字节中的指针指向一个名字叫作itable的内存块（在C中叫作Itab）。itable头部存储了一些与类型相关的元数据，然后才是函数指针列表。itable对应的是接口类型，而不是动态类型。以我们的例子来讲，Stringer的itable保存了类型Binary的元数据，然后才是那些满足Stringer接口的函数指针列表，在这个例子中就只有一个String方法，而Binary的其它方法则不会在itable中出现。</p>
+<p>第二个字节中的指针则指向b的一个副本。下面这个赋值语句 var s Stringer = b 将会申请一个b的副本，并将第二个字节中的指针指向该副本，其原理和 var c unit64 = b 一样。当我们改变b的值的时候，s和c的值将不会被改变。在接口中存储的值可能是任意大小的，但是接口本身却只有一个字来存储数据，所以程序会在堆上申请一组内存来存储该数据，然后再将第二个字上的指针指向该内存组。（如果数据的大小刚才等于或小于一个字，我们在后面会讨论该情况）</p>
+<p>像上面的switch语句所进行的特定类型检查，go编译器会生成相当于C中 s.tag-&gt;type这样的代码来检查实际类型和期望类型是否相同，如果相同的话，那么s.data将被拷贝并赋值给期望值。</p>
+<p>当调用s.String()时，Go编译器生成相当于C语言中的 s.tab-&gt;fun[0](s.data)它调用了函数指针指向的方法，并将接口第二个字作为第一个参数传递进去。值得注意的是，它传递的是第二个字中的32位的指针的值，而不是指针所指向的那个64位的值。一般情况下，接口调用并不知道该字节代表什么也不知道它所指向的数据有多大。而方法调用时会严格尊守itable里面所存储的函数指针的签名，因此在本例中该方法的签名应该是(*Binary) string而不是(Binary) string。</p>
+<p>在该示例中只有一个方法，如果有多个方法的时候，在itable表的底部将会有多个函数指针。</p>
+<h2 id="Computing-the-Itable"><a href="#Computing-the-Itable" class="headerlink" title="Computing the Itable"></a><strong>Computing the Itable</strong></h2><p>现在我们了解了itable的结构，但它是怎么生成的呢？go语言的动态类型转换特性决定了它不可能在编译时就生成它，因为会有太多的（interface type和concrete type）组成的对，并且大多数不会被使用到。取而代之的是，编译器会为各个实际类型生成一个类型描述结构，该结构就包含了该类型所实现的方法列表。同样的，编译器也会每个接口类型生成这样一个类型描述结构，它也同样包含了接口方法列表。接口在运行时才会生成itable，通过查找接口的类型描述结构和具体类型的类型描述结构，并且将itable缓存起来，因此，这个计算只会被执行一次。</p>
+<p>在我们的例子中，Stringer的类型描述结构中只有一个方法，而Binary中有两个方法。假设接口类型拥有ni个方法，实际类型拥有nt个方法，那么找到它所相互匹配的方法所花费的时间复杂度为O(ni x nt),我们可以能过Map存储它们，然后查找过程中时间复杂度则变成O(ni + nt)。</p>
+<h2 id="Memory-Optimizations"><a href="#Memory-Optimizations" class="headerlink" title="Memory Optimizations"></a><strong>Memory Optimizations</strong></h2><p>接口的内存使用在两种情况下可以被优化。</p>
+<ul>
+<li>如果接口类型是interface{}的情况下，也就是没有任何方法的情况下，itable也就没有存在的必要。在这种情况下，第一个字就可以存储实际类型了：</li>
+</ul>
+<p><img src="/image/gointer3.png" alt></p>
+<p>一个接口有没有方法go将用一个静态属性表示，因此编译器知道第一个字表示的是哪一种情况。</p>
+<ul>
+<li>如果接口所关联的类型的值大小刚好是一个机器字长，那就没有必要进行堆内存的申请了。如果我们像Binary一样定义一个Binary32，将uint32作为它的底层类型，那么它的值就可以直接存储在第二个字中：</li>
+</ul>
+<p><img src="/image/gointer4.png" alt></p>
+<p>在这种情况下，String的函数签名将变成(Binary) string,而不是原来的(*Binary) string。</p>
+<p>因此，当给一个空接口赋值一个大小为一个机器字长的值（或更小）时，它将同时采用上面这两种优化方式。</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/03/09/docker-compose-autostart/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          docker-compose开机自动重启
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/03/03/docker-remote-access/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">docker-开启远程访问</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">分享到：</span>
+		<a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<a class="jiathis_button_tumblr"></a>
+		<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
+
+
+
+<div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="GoDataStructures-Interfaces" data-title="Go Data Structures Interfaces" data-url="http://yoursite.com/2016/03/08/GoDataStructures-Interfaces/"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"true"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2021 Dockerfun
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: true,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+
+<script src="http://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+
+
+<script src="/js/main.js"></script>
+
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  </div>
+</body>
+</html>
