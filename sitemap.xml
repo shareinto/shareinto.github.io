@@ -9,13 +9,6 @@
   </url>
   
   <url>
-    <loc>http://yoursite.com/2021/12/15/%E7%BD%91%E5%85%B3%E4%BB%A3%E7%90%86--%E5%91%8A%E5%88%ABhttps_proxy/</loc>
-    
-    <lastmod>2021-12-15</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://yoursite.com/2021/10/29/go%20defer%20opencoded/</loc>
     
     <lastmod>2021-11-11</lastmod>
@@ -235,14 +228,7 @@
   </url>
   
   <url>
-    <loc>http://yoursite.com/tags/java/</loc>
-    <lastmod>2021-12-15</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://yoursite.com/tags/docker/</loc>
+    <loc>http://yoursite.com/tags/kubernetes/</loc>
     <lastmod>2021-12-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -256,7 +242,14 @@
   </url>
   
   <url>
-    <loc>http://yoursite.com/tags/kubernetes/</loc>
+    <loc>http://yoursite.com/tags/docker/</loc>
+    <lastmod>2021-12-15</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://yoursite.com/tags/java/</loc>
     <lastmod>2021-12-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -291,14 +284,14 @@
   </url>
   
   <url>
-    <loc>http://yoursite.com/tags/docker-compose/</loc>
+    <loc>http://yoursite.com/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/</loc>
     <lastmod>2021-12-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
-    <loc>http://yoursite.com/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/</loc>
+    <loc>http://yoursite.com/tags/docker-compose/</loc>
     <lastmod>2021-12-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -340,20 +333,6 @@
   </url>
   
   <url>
-    <loc>http://yoursite.com/tags/git/</loc>
-    <lastmod>2021-12-15</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://yoursite.com/tags/git-flow/</loc>
-    <lastmod>2021-12-15</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>http://yoursite.com/tags/kprobe/</loc>
     <lastmod>2021-12-15</lastmod>
     <changefreq>daily</changefreq>
@@ -367,17 +346,31 @@
     <priority>0.6</priority>
   </url>
   
-
-  
   <url>
-    <loc>http://yoursite.com/categories/linux/</loc>
+    <loc>http://yoursite.com/tags/git/</loc>
     <lastmod>2021-12-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
+    <loc>http://yoursite.com/tags/git-flow/</loc>
+    <lastmod>2021-12-15</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+
+  
+  <url>
     <loc>http://yoursite.com/categories/kubernetes/</loc>
+    <lastmod>2021-12-15</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://yoursite.com/categories/linux/</loc>
     <lastmod>2021-12-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -405,14 +398,14 @@
   </url>
   
   <url>
-    <loc>http://yoursite.com/categories/java/</loc>
+    <loc>http://yoursite.com/categories/go/</loc>
     <lastmod>2021-12-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
-    <loc>http://yoursite.com/categories/go/</loc>
+    <loc>http://yoursite.com/categories/java/</loc>
     <lastmod>2021-12-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -426,14 +419,14 @@
   </url>
   
   <url>
-    <loc>http://yoursite.com/categories/git/</loc>
+    <loc>http://yoursite.com/categories/ebpf/</loc>
     <lastmod>2021-12-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
-    <loc>http://yoursite.com/categories/ebpf/</loc>
+    <loc>http://yoursite.com/categories/git/</loc>
     <lastmod>2021-12-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>

@@ -20,36 +20,9 @@
       
         <tags>
             
-            <tag> docker </tag>
-            
             <tag> linux </tag>
             
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>网关代理-告别https_proxy</title>
-      <link href="/2021/12/15/%E7%BD%91%E5%85%B3%E4%BB%A3%E7%90%86--%E5%91%8A%E5%88%ABhttps_proxy/"/>
-      <url>/2021/12/15/%E7%BD%91%E5%85%B3%E4%BB%A3%E7%90%86--%E5%91%8A%E5%88%ABhttps_proxy/</url>
-      
-        <content type="html"><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>随着 Docker 技术的发展和广泛流行，云原生应用和容器调度管理系统也成为 IT 领域大热的词汇，Kuberentes可以说是乘着Docker和微服务的东风，一经推出便迅速蹿红，所以当下很多开始进行kubernetes的学习。于是很多人将Kubernetes源码拉下来，但在本地进行make quick-release时，经常会遇到镜像拉取失败的错误<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">make quick-release                                </span><br><span class="line">....</span><br><span class="line">error: failed to solve: rpc error: code = Unknown desc = failed to solve with frontend dockerfile.v0: failed to create LLB definition: failed to <span class="keyword">do</span> request: Head https://k8s.gcr.io/v2/build-image/kube-cross/manifests/v1.23.0-go1.17.2-bullseye.0: net/http: TLS handshake timeout</span><br><span class="line">...</span><br></pre></td></tr></table></figure><br>因为quick-release是使用容器进行编译的，这些容器存放在k8s.gcr.io上面，在中国大陆默认情况下是拉不到这些镜像的，这里就必须给docker进程设置一个代理：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># touch /etc/systemd/system/docker.service.d/proxy.conf</span></span><br><span class="line"><span class="comment"># vi /etc/systemd/system/docker.service.d/proxy.conf</span></span><br><span class="line"></span><br><span class="line">[Service]</span><br><span class="line">Environment=<span class="string">&quot;HTTP_PROXY=http://proxy.example.com:8080/&quot;</span></span><br><span class="line">Environment=<span class="string">&quot;HTTPS_PROXY=http://proxy.example.com:8080/&quot;</span></span><br><span class="line">Environment=<span class="string">&quot;NO_PROXY=localhost,127.0.0.1,.example.com&quot;</span></span><br></pre></td></tr></table></figure><br>在构建过程中，可能也会到外网下载一些依赖包，我们还得给docker build设置代理<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># docker build . \</span></span><br><span class="line">    --build-arg <span class="string">&quot;HTTP_PROXY=http://proxy.example.com:8080/&quot;</span> \</span><br><span class="line">    --build-arg <span class="string">&quot;HTTPS_PROXY=http://proxy.example.com:8080/&quot;</span> \</span><br><span class="line">    --build-arg <span class="string">&quot;NO_PROXY=localhost,127.0.0.1,.example.com&quot;</span> \</span><br><span class="line">    -t your/image:tag</span><br></pre></td></tr></table></figure><br>当然有一些软件在运行时，不走系统的网络库，这样就算我们如何设置HTTP_PROXY/HTTPS_PROXY环境变量，这些软件也不能很好地工作。那么有没有一种方法让我们从上面这些繁琐的设置中解脱出来，还我一个干净清爽的操作系统呢，答案是肯定的，这就是我们今天要介绍的网关代理模式。</p><blockquote><p>它就和servicemesh一样，将springcloud那一堆微服务要做的事情，下沉到基础设施层，这样我们的程序员就可以专注到业务开发上去了</p></blockquote><p><a name="wBmbO"></a></p><h1 id="网络拓扑"><a href="#网络拓扑" class="headerlink" title="网络拓扑"></a>网络拓扑</h1><p>笔者的开发模式是windows+linux虚拟机的方式，linux是以虚拟机的方式跑在windows上面，虚拟机通过NAT模式连接至windows。<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/1639494/1639379088258-532bb9e2-93f9-4c2d-8c24-fbed5d75d782.png#clientId=u5596b97f-e88f-4&amp;from=paste&amp;height=261&amp;id=u406a26c1&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=261&amp;originWidth=744&amp;originalType=binary&amp;ratio=1&amp;size=17305&amp;status=done&amp;style=none&amp;taskId=u10853877-b4ee-4b58-acae-5f3b4a928e1&amp;width=744" alt="image.png"><br />这里windows（192.168.88.1）其实是vm的网关，vm的数据包发往windows后，再由windows转发至外网。这里有两种思路，一种是主路由代理，一种是旁臂路由代理。<br><a name="mAsQ5"></a></p><h2 id="​"><a href="#​" class="headerlink" title="​"></a>​<br /></h2><ul><li><p><strong>主路由</strong>：改造windows，在windows实现路由代理。</p><p><img src="https://cdn.nlark.com/yuque/0/2021/png/1639494/1639380806080-d9cb362a-4024-4768-8de9-ac40f6d25638.png#clientId=ub2b1c05c-cf17-4&amp;from=paste&amp;height=542&amp;id=u3de8aaf0&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=542&amp;originWidth=867&amp;originalType=binary&amp;ratio=1&amp;size=68409&amp;status=done&amp;style=none&amp;taskId=u1ad79483-06b3-47f9-b317-479b4b48289&amp;width=867" alt="image.png"></p></li><li><p><strong>旁臂路由</strong>：添加一台VM，该VM实现路由代理，我们将其称作路由VM，其它VM的网关指向该路由VM。</p></li></ul><p><img src="https://cdn.nlark.com/yuque/0/2021/png/1639494/1639380849618-5e571381-a5c5-41a6-a444-12068b830d80.png#clientId=ub2b1c05c-cf17-4&amp;from=paste&amp;height=440&amp;id=u1f36f6f9&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=440&amp;originWidth=985&amp;originalType=binary&amp;ratio=1&amp;size=62588&amp;status=done&amp;style=none&amp;taskId=uca757244-e49d-437c-929f-f78ab4b960e&amp;width=985" alt="image.png"><br /><br><br />由于笔记的宿主机是windows，如何将windows打造成代理路由是笔者的知识盲区，所以这里我们主要介绍旁臂路由模式。<br><a name="NNet9"></a></p><h1 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h1><p>首先，要解释一下目前主流的<del>你懂的上网方式</del>原理，首先我们要在你懂的地方搭建一个服务端（这个不是本文的教学内容），然后在我们内网搭启动相应的客户端，客户端和服务端以某种加密方式通信，伪装成普通的请求（如https），这样逃过你懂的拦截。</p><blockquote><p>这里服务端可以自己搭建也可以购买，一般自己搭建大家称作自建VPS，就是自己购买海外VPS，然后在上面安装Server，别人搭好的Server一般称作机场，机场名称的由来是因为最早ShadowSocket的客户端图标是一架飞机，然后客户端要寻找服务端连接，就好像是找飞机停靠的机场一样</p></blockquote><p><a name="C5LJ2"></a></p><h2 id="代理模式"><a href="#代理模式" class="headerlink" title="代理模式"></a>代理模式</h2><p>代理模式就是我们的手机或pc直接连接到这个客户端：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/1639494/1639383404227-46d298d8-b2de-49ab-bbee-dfcb898227f6.png#clientId=ub2b1c05c-cf17-4&amp;from=paste&amp;height=489&amp;id=uaa7e59e0&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=489&amp;originWidth=1128&amp;originalType=binary&amp;ratio=1&amp;size=79058&amp;status=done&amp;style=none&amp;taskId=u6a55fe7e-fa47-4bef-b63a-00bf9af9c6d&amp;width=1128" alt="image.png"><br />当我们手机连接wifi的时候有一个代理选项，讲的就是这种模式：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/1639494/1639384586837-889aaae5-13b4-48f0-ae2e-07555d1d9c2c.png#clientId=ub2b1c05c-cf17-4&amp;from=paste&amp;height=338&amp;id=ub27f2194&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=1264&amp;originWidth=1242&amp;originalType=binary&amp;ratio=1&amp;size=224200&amp;status=done&amp;style=none&amp;taskId=u8ba8670c-5783-40d7-8c40-164ba587556&amp;width=332" alt="image.png"><br><a name="XzNpJ"></a></p><h2 id="网关模式"><a href="#网关模式" class="headerlink" title="网关模式"></a>网关模式</h2><p>网关模式就是将网关指向代理路由，然后路由内部再将数据包转发至该客户端：<br />​</p><p><img src="https://cdn.nlark.com/yuque/0/2021/png/1639494/1639383544530-f374e4e2-f139-4124-8b56-e329f3c657e7.png#clientId=ub2b1c05c-cf17-4&amp;from=paste&amp;height=526&amp;id=u3e4af92d&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=526&amp;originWidth=1117&amp;originalType=binary&amp;ratio=1&amp;size=87981&amp;status=done&amp;style=none&amp;taskId=ua850a4aa-2287-465d-8bfa-38f4a6fb034&amp;width=1117" alt="image.png"><br />我们手机连接wifi时，可以选择手动设置IP：<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/1639494/1639384803762-a3ec7f89-bb1a-4ec5-a524-8313a07017e6.png#clientId=ub2b1c05c-cf17-4&amp;from=paste&amp;height=325&amp;id=u3cf0aa95&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=1304&amp;originWidth=1242&amp;originalType=binary&amp;ratio=1&amp;size=261804&amp;status=done&amp;style=none&amp;taskId=ue5a0bc7f-d013-404d-8fb2-2b801de2824&amp;width=310" alt="image.png"><br />网关模式也是本文要讲的方式，这里我们主要讲解在代理路由内部，我们要如何将数据包转发至该客户端,现在主流的方式还是利用linux的netfilter的能力来进行转发的，这里又分成两种模式<br><a name="ptJFj"></a></p><h3 id="REDIRECT"><a href="#REDIRECT" class="headerlink" title="REDIRECT"></a>REDIRECT</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># iptables -t nat -A PREROUTING -p tcp -j REDIRECT --to-port 1041</span></span><br></pre></td></tr></table></figure><p>该命令将所有外部进来的tcp流量都转发至本地的1041端口，这种方式要确保内核的ip_forward参数是1<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># sysctl net.ipv4.ip_forward    </span></span><br><span class="line">net.ipv4.ip_forward = 1</span><br></pre></td></tr></table></figure></p><blockquote><p>既然修改了数据包的目标IP地址，那么我们程序中不是就拿不到原始的目标IP了吗？linux的conntrack模块会记录链接的原始IP，并且为我们提供了一个系统调用来获取原始IP<br>getdestaddr(int fd, struct sockaddr_storage *destaddr)</p></blockquote><p><a name="oPvJ4"></a></p><h3 id="TPROXY"><a href="#TPROXY" class="headerlink" title="TPROXY"></a>TPROXY</h3><p>对于TPROXY模式，实现的原理要相对复杂不少，需要借助iptables和路由<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># iptables -t mangle -A PREROUTING -p tcp -j TPROXY --tproxy-mark 0x1/0x1 --on-port 8888</span></span><br><span class="line"><span class="comment"># ip rule add fwmark 0x1/0x1 pref 100 table 100</span></span><br><span class="line"><span class="comment"># ip route add local default dev lo table 100</span></span><br></pre></td></tr></table></figure></p><blockquote><p>由于tproxy并没有改变数据包，所以怎么让用户空间接收目标IP不属于本机的包呢？linux为socket提供了一个IP_TRANSPARENT选项，让进程可以bind一个不属于本机的地址，这也正是透明代理神奇的地方。</p></blockquote><p><a name="JgO85"></a></p><h1 id="Openwrt安装（macvlan-docker）"><a href="#Openwrt安装（macvlan-docker）" class="headerlink" title="Openwrt安装（macvlan+docker）"></a>Openwrt安装（macvlan+docker）</h1><p>原理搞明白之后，我们接下来进入动手阶段，openwrt是linux的一个发行版，它可以用来作为软路由的操作系统，我们只要装好它就可以得到一个网关代理。<br><a name="VUZON"></a></p><h3 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h3><p><a name="qdRpK"></a></p><h4 id="1-安装docker"><a href="#1-安装docker" class="headerlink" title="1. 安装docker"></a>1. 安装docker</h4><p>这里我们使用docker进行openwrt的安装，这样不影响我linux开发机的正常使用。关于docker的安装请大家自行搜索，或者参考<a href="https://shareinto.cn/2018/09/17/centos7-docker-install/">centos7上安装docker环境</a><br><a name="XlkuU"></a></p><h4 id="2-拉取镜像"><a href="#2-拉取镜像" class="headerlink" title="2. 拉取镜像"></a>2. 拉取镜像</h4><p>镜像列表可以查看<a href="https://github.com/SuLingGG/OpenWrt-Docker">这里</a><br />笔者是x86_64机器，运行以下命令拉取镜像<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># docker pull registry.cn-shanghai.aliyuncs.com/suling/openwrt:x86_64</span></span><br></pre></td></tr></table></figure><br><a name="Kgzzv"></a></p><h3 id="网络设置"><a href="#网络设置" class="headerlink" title="网络设置"></a>网络设置</h3><p><a name="GvYa9"></a></p><h3 id="1-打开网卡的混杂模式"><a href="#1-打开网卡的混杂模式" class="headerlink" title="1. 打开网卡的混杂模式"></a>1. 打开网卡的混杂模式</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ip link set eth0 promisc on</span></span><br></pre></td></tr></table></figure><p>这里eth0是笔者linux虚拟机的网卡名称，你必须改成你机器的实际网卡名称</p><blockquote><p>这里开混杂模式是因为虚拟机的eth0网卡必须接收不同ip的数据包</p></blockquote><p><a name="QRJ9W"></a></p><h3 id="2-创建macvlan网络"><a href="#2-创建macvlan网络" class="headerlink" title="2. 创建macvlan网络"></a>2. 创建macvlan网络</h3><p>这里我们要为docker先创建一个macvlan类型的网络<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># docker network create -d macvlan --subnet=192.168.88.0/24 --gateway=192.168.88.1 -o parent=eth0 macvlan0</span></span><br><span class="line"><span class="comment"># docker network ls</span></span><br><span class="line">NETWORK ID     NAME       DRIVER    SCOPE</span><br><span class="line">3f480a69e394   bridge     bridge    <span class="built_in">local</span></span><br><span class="line">cc721823c8ca   host       host      <span class="built_in">local</span></span><br><span class="line">8ec9c9727726   kind       bridge    <span class="built_in">local</span></span><br><span class="line">1b330a41a687   macvlan0   macvlan   <span class="built_in">local</span></span><br><span class="line">a8f4badfc912   none       null      <span class="built_in">local</span></span><br></pre></td></tr></table></figure></p><ul><li>-d 指定网络类型为macvlan</li><li>–subnet 指定该网络的cidr，它必须和linux开发机同处于一个网段</li><li>–gateway 指定网关，同linux开发机同一个网关即可</li><li>-o parent 指定要从哪个网卡创建macvlan</li><li>macvlan0是网络名称，这个后面创建容器的时候使用</li></ul><p>最后docker network ls检查网络是否创建成功<br><a name="j1pJF"></a></p><h3 id="安装配置"><a href="#安装配置" class="headerlink" title="安装配置"></a>安装配置</h3><p><a name="IFwjF"></a></p><h4 id="1-创建容器"><a href="#1-创建容器" class="headerlink" title="1. 创建容器"></a>1. 创建容器</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># docker run --restart always --name openwrt -d --network macvlan0 --ip 192.168.88.254 --privileged registry.cn-shanghai.aliyuncs.com/suling/openwrt:x86_64 /sbin/init</span></span><br></pre></td></tr></table></figure><p>其中–ip指定容器的ip地址，这里选择254相对靠后的ip，不容易和其它VM冲突。<br><a name="od9Yt"></a></p><h4 id="2-配置容器网络"><a href="#2-配置容器网络" class="headerlink" title="2. 配置容器网络"></a>2. 配置容器网络</h4><p>先进入容器<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># docker exec -it openwrt bash</span></span><br></pre></td></tr></table></figure><br>编辑/etc/config/network文件<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># vi /etc/config/network</span></span><br><span class="line">...</span><br><span class="line">config interface <span class="string">&#x27;lan&#x27;</span></span><br><span class="line">        option <span class="built_in">type</span> <span class="string">&#x27;bridge&#x27;</span></span><br><span class="line">        option ifname <span class="string">&#x27;eth0&#x27;</span></span><br><span class="line">        option proto <span class="string">&#x27;static&#x27;</span></span><br><span class="line">        option netmask <span class="string">&#x27;255.255.255.0&#x27;</span></span><br><span class="line">        option ip6assign <span class="string">&#x27;60&#x27;</span></span><br><span class="line">        option ipaddr <span class="string">&#x27;192.168.88.254&#x27;</span></span><br><span class="line">        option gateway <span class="string">&#x27;192.168.88.2&#x27;</span></span><br><span class="line">        option dns <span class="string">&#x27;192.168.88.2&#x27;</span></span><br><span class="line">...</span><br></pre></td></tr></table></figure></p><ul><li>ipadd: 必须和上一步–ip参数一致</li><li>gateway: 必须和虚拟机的网关一致</li><li>dns: 最好和虚拟机的一致</li></ul><p>编辑完成后，保存并重启network服务<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># /etc/init.d/network restart</span></span><br></pre></td></tr></table></figure><br>最后还必须将br-lan网口设置成混杂模式(这一步还是在容器中执行)<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ip link set br-lan promisc on</span></span><br></pre></td></tr></table></figure><br><a name="JNC0V"></a></p><h4 id="3-配置虚拟机"><a href="#3-配置虚拟机" class="headerlink" title="3. 配置虚拟机"></a>3. 配置虚拟机</h4><p>macvlan为了安全起见，默认情况下各个子网口和宿主机是不通的，为了让宿主机能访问容器，这里我们要给宿主机单独创建一个子网口，并配置相应的路由<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ip link add link eth0 dev macv1 type macvlan mode bridge</span></span><br></pre></td></tr></table></figure><br>这里我们基于eth0网口创建了一个名为macv1的子网口，注意mode要指定为bridge，这样它才能和其它子网口通信<br />创建完网口之后，我们还必须添加一条路由，使得到容器的数据包走该网口<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ip route add 192.168.88.254/32 dev macv1</span></span><br></pre></td></tr></table></figure><br>最后ping一下看是不是通了<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ping 192.168.88.254                                     </span><br><span class="line">PING 192.168.88.254 (192.168.88.254) 56(84) bytes of data.</span><br><span class="line">64 bytes from 192.168.88.254: icmp_seq=1 ttl=64 time=0.052 ms</span><br><span class="line">64 bytes from 192.168.88.254: icmp_seq=2 ttl=64 time=0.060 ms</span><br><span class="line">...</span><br></pre></td></tr></table></figure><br><a name="BMtmE"></a></p><h4 id="4-配置openwrt"><a href="#4-配置openwrt" class="headerlink" title="4. 配置openwrt"></a>4. 配置openwrt</h4><ol><li>添加节点</li></ol><p>这里通过浏览器打开<a href="http://192.168.88.254">http://192.168.88.254</a> 这里你可以替换成你自己的容器ip，默认的用户名和密码：root/password<br />登录完成后，首先要添加节点<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/1639494/1639563908418-8d54ad34-c057-4c16-ba5c-73ce30410695.png#clientId=u0d51c659-adbb-4&amp;from=paste&amp;height=401&amp;id=u9ba2dc1f&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=465&amp;originWidth=1757&amp;originalType=binary&amp;ratio=1&amp;size=98878&amp;status=done&amp;style=none&amp;taskId=u8b14cdcf-3d60-48f7-9561-b1b11bd59e5&amp;width=1515" alt="image.png"><br />这里上文提到的自建vps或者购买的机场，你一般都会有一串字符串，将它贴到这个地方，点击添加。<br />完成后可以在节点列表里面看到<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/1639494/1639564066863-edf795ee-7c27-47e4-9f02-df9168d6285f.png#clientId=u0d51c659-adbb-4&amp;from=paste&amp;height=376&amp;id=ua9591fdc&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=376&amp;originWidth=2040&amp;originalType=binary&amp;ratio=1&amp;size=64519&amp;status=done&amp;style=none&amp;taskId=uf44f2841-f2fb-4f1d-8c14-8e8b9b10a42&amp;width=2040" alt="image.png"></p><ol start="2"><li>基本设置</li></ol><p>点击基本设置，打开主开关，TCP节点选择上一步添加的节点，UDP节点选择和TCP节点相同即可，然后点击“保存&amp;应用”按钮。<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/1639494/1639564173573-d5b700b9-c618-4e21-92c7-e3aff6990406.png#clientId=u0d51c659-adbb-4&amp;from=paste&amp;height=751&amp;id=u9d4054c7&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=751&amp;originWidth=1218&amp;originalType=binary&amp;ratio=1&amp;size=114852&amp;status=done&amp;style=none&amp;taskId=u093e3a18-3de5-4288-ae23-082e1cd4afb&amp;width=1218" alt="image.png"></p><ol start="3"><li>设置DNS</li></ol><p>切换至DNS项，关闭缓存解析结果和ChinaDNS-NG，最后点击清空IPSET，最后记得保存变更。<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/1639494/1639564303900-94135aa4-fe21-4f59-8e6f-99fcdf9b82be.png#clientId=u0d51c659-adbb-4&amp;from=paste&amp;height=928&amp;id=u6f10096e&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=928&amp;originWidth=1145&amp;originalType=binary&amp;ratio=1&amp;size=117659&amp;status=done&amp;style=none&amp;taskId=u85c14b2c-5e88-4bec-af1c-35e57c7c6a3&amp;width=1145" alt="image.png"></p><ol start="4"><li>检测</li></ol><p>最后，如果你的梯子线路正常，那么就可以通过检测<br /><img src="https://cdn.nlark.com/yuque/0/2021/png/1639494/1639564464959-7b66f098-8824-4982-81ce-2745fc41128c.png#clientId=u0d51c659-adbb-4&amp;from=paste&amp;height=283&amp;id=ue830def7&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=283&amp;originWidth=1682&amp;originalType=binary&amp;ratio=1&amp;size=54100&amp;status=done&amp;style=none&amp;taskId=u58747b0e-1b8e-4bd4-ab49-e77bf10e20f&amp;width=1682" alt="image.png"><br><a name="yDIrb"></a></p><h3 id="配置网关代理"><a href="#配置网关代理" class="headerlink" title="配置网关代理"></a>配置网关代理</h3><p>最后一步，我们可以将虚拟机的默认网关指向该容器<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ip route del default</span></span><br><span class="line"><span class="comment"># ip route add default via 192.168.88.254 dev macv1</span></span><br></pre></td></tr></table></figure><br>到这里我们就可以愉快地make quick-release了<br><a name="Pyj3I"></a></p><h1 id="结束语"><a href="#结束语" class="headerlink" title="结束语"></a>结束语</h1><p>最后，大家可能觉得这样的配置过于复杂，其实你完成可以将上述步骤固化成脚本，将openwrt配置好后导出镜像，然后在开机的时候自动执行这些脚本就可以了,例如这样的脚本<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"> 1 <span class="comment">#!/bin/bash</span></span><br><span class="line"> 2 </span><br><span class="line"> 3 <span class="comment"># start openwrt</span></span><br><span class="line"> 4 docker rm -f openwrt</span><br><span class="line"> 5 docker run --restart no --name openwrt -d --network macvlan0 --ip 192.168.88.254 --privileged openwrt:hkv2r</span><br><span class="line">   ay /sbin/init</span><br><span class="line"> 6 </span><br><span class="line"> 7 <span class="comment"># set route to openwrt</span></span><br><span class="line"> 8 ip link add link eth0 dev macv1 <span class="built_in">type</span> macvlan mode bridge</span><br><span class="line"> 9 ip link <span class="built_in">set</span> macv1 up</span><br><span class="line">10 ip route add 192.168.88.254/32 dev macv1</span><br><span class="line">11 ip route del default</span><br><span class="line">12 ip route add default via 192.168.88.254 dev macv1</span><br><span class="line">13 </span><br><span class="line">14 <span class="comment"># set interface promisc</span></span><br><span class="line">15 ip link <span class="built_in">set</span> eth0 promisc on</span><br><span class="line">16 sleep 30</span><br><span class="line">17 docker <span class="built_in">exec</span> openwrt ip link <span class="built_in">set</span> br-lan promisc on</span><br></pre></td></tr></table></figure><br>这些东西就不在本文的讨论范围之内了，我们主要的目的是教会大家原理，大家可以发挥聪明才智，打造属于自己稳定的网关代理。<br><a name="XljFt"></a></p><h1 id="参考文章："><a href="#参考文章：" class="headerlink" title="参考文章："></a>参考文章：</h1><p><a href="https://gsoc-blog.ecklm.com/iptables-redirect-vs.-dnat-vs.-tproxy/">https://gsoc-blog.ecklm.com/iptables-redirect-vs.-dnat-vs.-tproxy/</a><br /><a href="https://www.cfmem.com/2021/08/docker-openwrt.html">https://www.cfmem.com/2021/08/docker-openwrt.html</a><br /><a href="https://www.ichenfu.com/2019/04/09/istio-inbond-interception-and-linux-transparent-proxy/">https://www.ichenfu.com/2019/04/09/istio-inbond-interception-and-linux-transparent-proxy/</a></p>]]></content>
-      
-      
-      <categories>
-          
-          <category> docker </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
             <tag> docker </tag>
-            
-            <tag> linux </tag>
             
         </tags>
       
@@ -185,9 +158,9 @@
       
         <tags>
             
-            <tag> docker </tag>
-            
             <tag> linux </tag>
+            
+            <tag> docker </tag>
             
             <tag> centos </tag>
             
@@ -243,11 +216,11 @@
       
         <tags>
             
-            <tag> java </tag>
+            <tag> linux </tag>
             
             <tag> docker </tag>
             
-            <tag> linux </tag>
+            <tag> java </tag>
             
         </tags>
       
@@ -326,11 +299,11 @@
       
         <tags>
             
-            <tag> docker </tag>
+            <tag> kubernetes </tag>
             
             <tag> linux </tag>
             
-            <tag> kubernetes </tag>
+            <tag> docker </tag>
             
         </tags>
       
@@ -355,11 +328,11 @@
       
         <tags>
             
-            <tag> docker </tag>
+            <tag> kubernetes </tag>
             
             <tag> linux </tag>
             
-            <tag> kubernetes </tag>
+            <tag> docker </tag>
             
         </tags>
       
@@ -384,11 +357,11 @@
       
         <tags>
             
-            <tag> docker </tag>
+            <tag> kubernetes </tag>
             
             <tag> linux </tag>
             
-            <tag> kubernetes </tag>
+            <tag> docker </tag>
             
         </tags>
       
@@ -413,9 +386,9 @@
       
         <tags>
             
-            <tag> docker </tag>
-            
             <tag> kubernetes </tag>
+            
+            <tag> docker </tag>
             
         </tags>
       
@@ -600,9 +573,9 @@
       
         <tags>
             
-            <tag> docker </tag>
-            
             <tag> linux </tag>
+            
+            <tag> docker </tag>
             
             <tag> 操作系统 </tag>
             
@@ -642,9 +615,9 @@
       
         <tags>
             
-            <tag> docker </tag>
-            
             <tag> linux </tag>
+            
+            <tag> docker </tag>
             
             <tag> docker-compose </tag>
             
@@ -740,9 +713,9 @@
       
         <tags>
             
-            <tag> docker </tag>
-            
             <tag> linux </tag>
+            
+            <tag> docker </tag>
             
             <tag> centos </tag>
             
