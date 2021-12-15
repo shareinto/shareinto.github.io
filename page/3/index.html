@@ -25,7 +25,7 @@
 <meta name="twitter:card" content="summary">
   
   
-    <link rel="icon" href="/favicon.ico">
+    <link rel="icon" href="/image/favicon.ico">
   
   
   <link rel="stylesheet" type="text/css" href="/./main.a5fda8.css">
@@ -147,6 +147,259 @@
           </div>
           <div id="js-content" class="content-ll">
             
+
+  
+    <article id="post-linux-lockfile" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+  
+  
+    <h1 itemprop="name">
+	
+	  <a class="article-title" href="/2016/12/07/linux-lockfile/">linux中的文件强制锁</a>
+	
+    </h1>
+  
+
+
+  
+  
+<a href="/2016/12/07/linux-lockfile/" class="archive-article-date">
+        <time datetime="2016-12-07T09:39:44.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-12-07</time>
+</a>
+
+  
+  
+    
+
+  
+  </header>
+  
+  <div class="article-entry" itemprop="articleBody">
+    
+    <h1 id="什么是建议性锁和强制性锁"><a href="#什么是建议性锁和强制性锁" class="headerlink" title="什么是建议性锁和强制性锁"></a>什么是建议性锁和强制性锁</h1><ul>
+<li>建议性锁：建议性锁并不从内核限制程序访问文件，而是依赖各个合作进程(cooperating process)之间遵循相应的规则。</li>
+<li>强制性锁：强制性锁会让内核检查每一个open、read、和write,验证调用进程是否违背了正访问的文件上的某一把锁。<blockquote>
+<p>就好比红灯亮了，人们遵守规则不闯红灯，但是如果有人要强行闯红灯的话，并没有好的方法去阻止，这就是建议性锁。<br>但是如果我们在红灯亮的同时，把道路也封起来，这时候你想闯也闯不了，这就是强制性锁。</p>
+</blockquote>
+</li>
+</ul>
+<h1 id="Linux上的强制性锁"><a href="#Linux上的强制性锁" class="headerlink" title="Linux上的强制性锁"></a>Linux上的强制性锁</h1><p>Linux系统上的强制性锁默认情况下是不开启的。如果要开启强制性锁，要由以下两个步骤完成：</p>
+<ol>
+<li>在文件系统mount的时候加上-o mand参数</li>
+<li>打开文件的设置组ID位并且关闭其组执行位</li>
+</ol>
+<p>在shell下可以这样打开<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ chmod g+s &lt;filename&gt;</span><br><span class="line">$ chmod g-x &lt;filename&gt;</span><br></pre></td></tr></table></figure><br>&#160; &#160; &#160; &#160;或者通过fchmod函数设置<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">fchmod</span>(fd,(statbuf.st_mode &amp; ~S_IXGRP) | S_ISGID)</span><br></pre></td></tr></table></figure></p>
+<h1 id="验证强制性锁"><a href="#验证强制性锁" class="headerlink" title="验证强制性锁"></a>验证强制性锁</h1><p> 我们可以编写一段测试程序，它打开一个文件（系统已打开强制性锁模式），对该文件整体设置一把读锁，然后休眠一段时间。<br> 该程序如下：<br> <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;apue.h&quot;</span></span></span><br><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line">    </span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">int</span> fd;</span><br><span class="line">   <span class="keyword">pid_t</span> pid;</span><br><span class="line">   <span class="class"><span class="keyword">struct</span> <span class="title">stat</span> <span class="title">statbuf</span>;</span></span><br><span class="line">   <span class="keyword">if</span>(argc != <span class="number">2</span>)</span><br><span class="line">   &#123;</span><br><span class="line">     <span class="built_in">fprintf</span>(stderr,<span class="string">&quot;usage: %s filename\n&quot;</span>,argv[<span class="number">0</span>]);</span><br><span class="line">     <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">if</span>((fd = <span class="built_in">open</span>(argv[<span class="number">1</span>],O_RDWR | O_CREAT | O_TRUNC,FILE_MODE)) &lt; <span class="number">0</span>)</span><br><span class="line">   &#123;</span><br><span class="line">     <span class="built_in">err_sys</span>(<span class="string">&quot;open error&quot;</span>);</span><br><span class="line">   &#125;</span><br><span class="line"> </span><br><span class="line">   <span class="keyword">if</span>(<span class="built_in">write</span>(fd,<span class="string">&quot;abcef&quot;</span>,<span class="number">6</span>) != <span class="number">6</span>)</span><br><span class="line">   &#123;</span><br><span class="line">     <span class="built_in">err_sys</span>(<span class="string">&quot;write error&quot;</span>);</span><br><span class="line">   &#125; </span><br><span class="line">   <span class="keyword">if</span>(<span class="built_in">fstat</span>(fd,&amp;statbuf) &lt; <span class="number">0</span>)</span><br><span class="line">   &#123;</span><br><span class="line">     <span class="built_in">err_sys</span>(<span class="string">&quot;fstat error&quot;</span>);</span><br><span class="line">   &#125; </span><br><span class="line">   <span class="keyword">if</span>(<span class="built_in">fchmod</span>(fd,(statbuf.st_mode &amp; ~S_IXGRP) | S_ISGID) &lt; <span class="number">0</span>)</span><br><span class="line">   &#123;</span><br><span class="line">     <span class="built_in">err_sys</span>(<span class="string">&quot;fchmod error&quot;</span>);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">if</span>((<span class="built_in">read_lock</span>(fd, <span class="number">0</span>, SEEK_SET, <span class="number">0</span>)) &lt; <span class="number">0</span>)</span><br><span class="line">   &#123;</span><br><span class="line">     <span class="built_in">err_sys</span>(<span class="string">&quot;read_lock error&quot;</span>);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="built_in">sleep</span>(<span class="number">60</span>);</span><br><span class="line">   <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br> 运行程序<br> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ./lock temp.lock</span><br></pre></td></tr></table></figure><br> 在另一个终端验证<br> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">echo</span> <span class="string">&quot;hello&quot;</span> &gt; temp.lock</span><br></pre></td></tr></table></figure><br> 可以看到出现了下面的错误<br> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-bash: temp.lock: Resource temporarily unavailable</span><br></pre></td></tr></table></figure><br> 事实证明我们的读锁生效了。</p>
+<h1 id="绕过强制性锁"><a href="#绕过强制性锁" class="headerlink" title="绕过强制性锁"></a>绕过强制性锁</h1><p> 我们用vi程序对temp.lock进行洗编辑，其结果竟然可以写回磁盘！强制性锁不起作用了？<br> 我们用strace -c vim 命令跟踪vim程序的系统调用<br> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ strace -c vim temp.lock</span><br></pre></td></tr></table></figure><br> 返回如下信息：<br> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"> % time     seconds  usecs/call     calls    errors syscall</span><br><span class="line">------ ----------- ----------- --------- --------- ----------------</span><br><span class="line">100.00    0.000015          15         1           setxattr</span><br><span class="line">  0.00    0.000000           0        34           <span class="built_in">read</span></span><br><span class="line">  0.00    0.000000           0        31           write</span><br><span class="line">  0.00    0.000000           0        29         2 open</span><br><span class="line">  0.00    0.000000           0        29           close</span><br><span class="line">  0.00    0.000000           0        22         4 <span class="built_in">stat</span></span><br><span class="line">  0.00    0.000000           0        20           fstat</span><br><span class="line">  0.00    0.000000           0         4         3 lstat</span><br><span class="line">  0.00    0.000000           0         2           poll</span><br><span class="line">  0.00    0.000000           0         5           lseek</span><br><span class="line">  0.00    0.000000           0        34           mmap</span><br><span class="line">  0.00    0.000000           0        17           mprotect</span><br><span class="line">  0.00    0.000000           0         8           munmap</span><br><span class="line">  0.00    0.000000           0         6           brk</span><br><span class="line">  0.00    0.000000           0        22           rt_sigaction</span><br><span class="line">  0.00    0.000000           0         6           rt_sigprocmask</span><br><span class="line">  0.00    0.000000           0        19           ioctl</span><br><span class="line">  0.00    0.000000           0         6         2 access</span><br><span class="line">  0.00    0.000000           0        46           select</span><br><span class="line">  0.00    0.000000           0         1           getpid</span><br><span class="line">  0.00    0.000000           0         2           socket</span><br><span class="line">  0.00    0.000000           0         2           connect</span><br><span class="line">  0.00    0.000000           0         2           sendto</span><br><span class="line">  0.00    0.000000           0         1           recvmsg</span><br><span class="line">  0.00    0.000000           0         1           execve</span><br><span class="line">  0.00    0.000000           0         1           uname</span><br><span class="line">  0.00    0.000000           0         9           fcntl</span><br><span class="line">  0.00    0.000000           0         1           fsync</span><br><span class="line">  0.00    0.000000           0         8           getcwd</span><br><span class="line">  0.00    0.000000           0         5           <span class="built_in">chdir</span></span><br><span class="line">  0.00    0.000000           0         4           fchdir</span><br><span class="line">  0.00    0.000000           0         1           rename</span><br><span class="line">  0.00    0.000000           0         6         1 unlink</span><br><span class="line">  0.00    0.000000           0         1         1 readlink</span><br><span class="line">  0.00    0.000000           0         2           chmod</span><br><span class="line">  0.00    0.000000           0         1           fchown</span><br><span class="line">  0.00    0.000000           0         1           getrlimit</span><br><span class="line">  0.00    0.000000           0         1           sysinfo</span><br><span class="line">  0.00    0.000000           0         3           getuid</span><br><span class="line">  0.00    0.000000           0         1           sigaltstack</span><br><span class="line">  0.00    0.000000           0         1           statfs</span><br><span class="line">  0.00    0.000000           0         1           arch_prctl</span><br><span class="line">  0.00    0.000000           0         1         1 getxattr</span><br><span class="line">------ ----------- ----------- --------- --------- ----------------</span><br><span class="line">100.00    0.000015                   398        14 total</span><br></pre></td></tr></table></figure><br> 我们可以发现其调用了rename函数，我们知道rename其实是通过unlink和link函数来实现对文件硬连接的改变。<br> 分析其原理：</p>
+<blockquote>
+<p>vim将新内容写到一个临时文件中，然后删除原文件，最后将临时文件名改为原文件名。而强制性锁对unlink函数没有影响^_^。</p>
+</blockquote>
+<p> 知道了原理那么我们可以自己编写一段代码来验证：<br> <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;apue.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> fd;</span><br><span class="line">  <span class="keyword">if</span>(argc != <span class="number">2</span>)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">fprintf</span>(stderr,<span class="string">&quot;usage: %s filename\n&quot;</span>, argv[<span class="number">0</span>]);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span>((fd = <span class="built_in">open</span>(<span class="string">&quot;.temp&quot;</span>,O_RDWR | O_CREAT | O_TRUNC,FILE_MODE)) &lt; <span class="number">0</span>)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">err_sys</span>(<span class="string">&quot;open error&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span>(<span class="built_in">write</span>(fd,<span class="string">&quot;ghijkl&quot;</span>,<span class="number">6</span>) != <span class="number">6</span>)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">err_sys</span>(<span class="string">&quot;write error&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span>(<span class="built_in">unlink</span>(argv[<span class="number">1</span>]) &lt; <span class="number">0</span>)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">err_sys</span>(<span class="string">&quot;unlink error&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span>(<span class="built_in">link</span>(<span class="string">&quot;.temp&quot;</span>,argv[<span class="number">1</span>]) &lt; <span class="number">0</span>)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">err_sys</span>(<span class="string">&quot;link error&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span>(<span class="built_in">unlink</span>(<span class="string">&quot;.temp&quot;</span>) &lt; <span class="number">0</span>)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">err_sys</span>(<span class="string">&quot;unlink error&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>该程序先创建一个.temp临时文件，然后写放一些数据，接着unlink原文件，再将.temp重命名成原文件，最后记得unlink临时文件。<br>记得该程序的工作目录必须和原文件处在同一个磁盘，因为跨磁盘的link是不允许的。最后看看效果：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cat temp.lock</span><br><span class="line">ghijkl</span><br></pre></td></tr></table></figure></p>
+<p>(全文完)</p>
+
+    
+
+    
+
+    
+
+  </div>
+  <div class="article-info article-info-index">
+    
+    
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">linux</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">操作系统</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+    
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/linux//" class="article-tag-list-link color1">linux</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+    
+    <p class="article-more-link">
+      <a class="article-more-a" href="/2016/12/07/linux-lockfile/">展开全文 >></a>
+    </p>
+    
+
+    
+    <div class="clearfix"></div>
+  </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-linux-terminal" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+  
+  
+    <h1 itemprop="name">
+	
+	  <a class="article-title" href="/2016/11/17/linux-terminal/">linux的控制终端</a>
+	
+    </h1>
+  
+
+
+  
+  
+<a href="/2016/11/17/linux-terminal/" class="archive-article-date">
+        <time datetime="2016-11-17T10:55:08.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2016-11-17</time>
+</a>
+
+  
+  
+    
+
+  
+  </header>
+  
+  <div class="article-entry" itemprop="articleBody">
+    
+    <h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><p>&#160; &#160; &#160; &#160;我们都知道，linux打开一个终端运行一个程序，在程序运行未结束的时候如果关掉终端的话，那么该程序也会跟着退出。但我们有时候需要长期间的运行一个程序，又不想开着我们的终端，那么我们就可以利用下面的语句<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nohup &lt;<span class="built_in">command</span>&gt; &amp;</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>nohup的意思是让我们的程序进程忽略所有挂断（SIGHUP）信号。</li>
+<li>“&amp;” 符号表示让我们的程序进程进入后台运行</li>
+</ul>
+<p>为什么这样做以后我们的程序就不会退出呢，接下来我们先补充一些相关的知识</p>
+<h1 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h1><h2 id="终端"><a href="#终端" class="headerlink" title="终端"></a>终端</h2><p>&#160; &#160; &#160; &#160;终端(Terminal)也是一台物理设备，只用于输入输出，本身没有强大的计算能力。一台计算机只有一个控制台，在计算资源紧张的时代，人们想共享一台计算机，可以通过终端连接到计算机上，将指令输入终端，终端传送给计算机，计算机完成指令后，将输出传送给终端，终端将结果显示给用户。</p>
+<h2 id="登录终端"><a href="#登录终端" class="headerlink" title="登录终端"></a>登录终端</h2><p>&#160; &#160; &#160; &#160;在早期的计算机上面，用户用哑终端（用硬连接连到主机）进行登录，这种登录要经由内核的终端设备驱动程序。因为连到主机上的终端设备数是固定的，所以同时的登录数也就有了已知的上限。随着图形终端的出现，创建终端窗口的应用也被开发出来，它仿真了基于字符的终端，使用户可以用熟悉的方式（shell命令行）与主机进行交互。包括使用网络进行远程登录的远程终端也是使用的这种方式。</p>
+<h2 id="伪终端"><a href="#伪终端" class="headerlink" title="伪终端"></a>伪终端</h2><p>&#160; &#160; &#160; &#160;随着图形终端的出现，创建终端窗口的应用也被开发出来，它仿真了基于字符的终端，使用户可以用熟悉的方式（shell命令行）与主机进行交互。包括使用网络进行远程登录的远程终端也是使用的这种方式。网络登录与传统的串行终端登录的区别在于，前者必须等待一个网络连接请求到达，而不是使一个进程等待每一个可能的登录。为了使同一个软件既能处理终端登录又能处理网络登录，系统使用了一种称为伪终端（pseudo terminal）的软件驱动程序，<br>它仿真串行终端的运行行为，并将终端操作映射为网络操作。</p>
+<h2 id="进程组"><a href="#进程组" class="headerlink" title="进程组"></a>进程组</h2><p>&#160; &#160; &#160; &#160;每个进程除了有一进程ID外，还属于一个进程组，进程组就是一个或多个进程的集合。<br>&#160; &#160; &#160; &#160;那为啥Linux里要有进程组呢？其实，提供进程组就是为了方便对进程进行管理。假设要完成一个任务，需要同时并发100个进程。当用户处于某种原因要终止 这个任务时，要是没有进程组，就需要手动的一个个去杀死这100个进程。</p>
+<h2 id="作业"><a href="#作业" class="headerlink" title="作业"></a>作业</h2><p>&#160; &#160; &#160; &#160;Shell分前后台来控制的不是进程而是作业（Job）或者进程组（Process Group）。一个前台作业可以由多个进程组成，一个后台也可以由多个进程组成，Shell可以运行一个前台作业和任意多个后台作业，这称为作业控制。<br>&#160; &#160; &#160; &#160;作业与进程组的区别：如果作业中的某个进程又创建了子进程，则子进程不属于作业。一旦作业运行结束，Shell就把自己提到前台，如果原来的前台进程还存在（如果这个子进程还没终止），它自动变为后台进程组。</p>
+<h2 id="会话"><a href="#会话" class="headerlink" title="会话"></a>会话</h2><p>&#160; &#160; &#160; &#160;会话（session）是一个或多个进程组的集合。<br><img src="/image/session.jpg" alt="会话"><br>&#160; &#160; &#160; &#160;如图，该会话中有三个进程组。通常是由shell的管道将几个进程编成一组的。上图有可能是由下列形式的shell命令形成的:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ proc1 | proc2 &amp; </span><br><span class="line">$ proc3 | proc4 | proc5</span><br></pre></td></tr></table></figure></p>
+<h2 id="控制终端"><a href="#控制终端" class="headerlink" title="控制终端"></a>控制终端</h2><ul>
+<li>当一个终端与一个会话相关联后，那么这个终端就称为该会话的控制终端(controlling terminal)。</li>
+<li>建立与控制终端连接的会话首进程被称为控制进程(controlling process)。</li>
+<li>一个会话中的几个进程组可被分成一个前台进程组(foreground process group)以及一个或多个后台进程组(background process group)。</li>
+<li>如果一个会话有一个控制终端的话， 则它有一个前台进程组，其他进程组为后台进程组。</li>
+<li>无论何时键入终端的中断键或退出键，都会将中断信号或退出信号发送至前台进程组的所有进程。</li>
+<li>如果终端检测到调制解调器（或网络）断开，则挂断信号（SIGHUP）发送至控制进程（会话首进程），如果会<strong>话首进程退出,则将挂断信号（SIGHUP）发送至前台进程组的所有进程</strong>。<br><img src="/image/session2.jpg" alt="会话"><br>&#160; &#160; &#160; &#160;有的时候程序的标准输入，输出会被重定向到其它地方，那么会话中的进程要<strong>获取终端的话可以open文件/dev/tty</strong>，这就告诉内核我要获取当前会话的控制终端。如果会话没有控制终端的话，那么对此设备的open将失败。</li>
+</ul>
+<h2 id="孤儿进程组"><a href="#孤儿进程组" class="headerlink" title="孤儿进程组"></a>孤儿进程组</h2><p>&#160; &#160; &#160; &#160;孤儿进程组定义为：该组中每个成员的父进程要么是该组的一个成员，要么不是该组所属会话的成员。换句话说，一个进程组中有一个进程，其父进程在属于同一个会话的另一个组中，那么它就不是孤儿进程组。</p>
+<blockquote>
+<p>在POSIX.1中，要求向新产生的孤儿进程组中处于停止状态的每一个进程发送挂断信号（SIGHUP），接着又向其发送继续信号（SIGCONT）。<strong>对挂断信号的系统默认动作是终止该进程</strong>。</p>
+</blockquote>
+<h1 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h1><ol>
+<li>当控制中端退出的时候，首先会发一个挂断信号(SIGHUP)给会话首进程，一般会话首进程都是shell进程，而此动作将导致shell进程退出。</li>
+<li>当会话首进程退出时，挂断信号（SIGHUP）还会继续发送给前台进程组的所有进程。</li>
+<li>若进程未对挂断信号（SIGHUP）进行处理时，内核默认动作是终止该进程。</li>
+</ol>
+<p>&#160; &#160; &#160; &#160;由此我们可以得出，导致进程退出的罪魁祸首就是这一个挂断信号（SIGHUP）。回到文章最前面提出的解决方案：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ nohup &lt;<span class="built_in">command</span>&gt; &amp;</span><br></pre></td></tr></table></figure><br>&#160; &#160; &#160; &#160;其中的nohup命令是让程序忽略<strong>所有</strong>的挂断信号，所以就算终端退出，我们的程序也不会退出了。而最后面的”&amp;”符号其实对防止程序退出没有任何用处。</p>
+<h1 id="深入"><a href="#深入" class="headerlink" title="深入"></a>深入</h1><p>&#160; &#160; &#160; &#160;那么我们能不能让程序自动具备防退出功能呢？其实原理很简单，我们只要注册挂断信号(SIGHUP)的处理程序，那么内核就认为你对该信号作出响应了，自然就不会终止程序了。来看代码：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;apue.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span> </span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sig_hup</span><span class="params">(<span class="keyword">int</span> signo)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;received signup\n&quot;</span>);</span><br><span class="line">&#125;  </span><br><span class="line"><span class="keyword">static</span> <span class="keyword">int</span> count; </span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">setbuf</span>(stdout,<span class="literal">NULL</span>);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;pid = %d\n&quot;</span>,<span class="built_in">getpid</span>());</span><br><span class="line">  <span class="built_in">signal</span>(SIGHUP, sig_hup);</span><br><span class="line">  <span class="keyword">while</span>(<span class="number">1</span>)</span><br><span class="line">  &#123; </span><br><span class="line">    count++;</span><br><span class="line">  &#125; </span><br><span class="line">  <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure><br>&#160; &#160; &#160; &#160;函数void (<em>signal(int, void(</em>)(int)))(int) 带两个参数,一个为整型,一个为函数指针，返回值也是一个函数指针。这两个函数指针所指向的函数接受一个整型参数 且没有返回值。我们代码中定义的sig_hup正好是这一种类型。因此可以将其注册为挂断信号（SIGHUP）的处理函数。这样一来，我们的程序就不会因收到挂断信号而退出了。</p>
+<h1 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h1><p>&#160; &#160; &#160; &#160;如果我们再次向进程发送SIGHUP信号(可利用kill -1命令)，那么我们的程序将会怎样呢，对于这种状况我们又该如何应对呢？</p>
+<p>(全文完)</p>
+
+    
+
+    
+
+    
+
+  </div>
+  <div class="article-info article-info-index">
+    
+    
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">linux</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">操作系统</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+    
+	<div class="article-category tagcloud">
+		<i class="icon-book icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="/categories/linux//" class="article-tag-list-link color1">linux</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+
+    
+    <p class="article-more-link">
+      <a class="article-more-a" href="/2016/11/17/linux-terminal/">展开全文 >></a>
+    </p>
+    
+
+    
+    <div class="clearfix"></div>
+  </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
 
   
     <article id="post-unix-environment" class="article article-type-post  article-index" itemscope itemprop="blogPost">
@@ -1032,122 +1285,9 @@
 
 
   
-    <article id="post-windows-git-flow-install" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-  
-  
-    <h1 itemprop="name">
-	
-	  <a class="article-title" href="/2015/09/10/windows-git-flow-install/">windows下git-flow的安装</a>
-	
-    </h1>
-  
-
-
-  
-  
-<a href="/2015/09/10/windows-git-flow-install/" class="archive-article-date">
-        <time datetime="2015-09-10T08:38:06.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2015-09-10</time>
-</a>
-
-  
-  
-    
-
-  
-  </header>
-  
-  <div class="article-entry" itemprop="articleBody">
-    
-    <h1 id="windows下git-flow的安装"><a href="#windows下git-flow的安装" class="headerlink" title="windows下git-flow的安装"></a>windows下git-flow的安装</h1><hr>
-<h3 id="本教程只针对安装了1-9-5-高版本此方法不行-版本的MSysGit的git-flow安装，如果是Cygwin版的请参照这里"><a href="#本教程只针对安装了1-9-5-高版本此方法不行-版本的MSysGit的git-flow安装，如果是Cygwin版的请参照这里" class="headerlink" title="本教程只针对安装了1.9.5(高版本此方法不行)版本的MSysGit的git-flow安装，如果是Cygwin版的请参照这里"></a>本教程只针对安装了<a target="_blank" rel="noopener" href="http://cdncs.101.com/v0.1/static/skin_manager/default/biz-comp-main/ios/Git_V1.9.5_preview20150319.1435310867.exe?&amp;attachment=true">1.9.5</a>(高版本此方法不行)版本的MSysGit的git-flow安装，如果是Cygwin版的请参照<a target="_blank" rel="noopener" href="https://github.com/nvie/gitflow/wiki/Windows">这里</a></h3><p>安装流程如下：</p>
-<blockquote>
-<ol>
-<li>下载git-flow所依赖的包</li>
-<li>clone git-flow安装包</li>
-</ol>
-</blockquote>
-<h2 id="1-下载git-flow所依赖的包"><a href="#1-下载git-flow所依赖的包" class="headerlink" title="1. 下载git-flow所依赖的包"></a>1. 下载git-flow所依赖的包</h2><p>  下载 <a target="_blank" rel="noopener" href="http://cdncs.101.com/v0.1/static/skin_manager/default/biz-comp-main/ios/git-flow.zip?&amp;attachment=true">git-flow.zip</a>。解压出<strong>getopt.exe,libintl3.dll和libiconv2.dll</strong>,放到Git安装目录（一般是C:\Program Files (x86)\Git）的bin目录下</p>
-<h2 id="2-clone-git-flow安装包"><a href="#2-clone-git-flow安装包" class="headerlink" title="2. clone git-flow安装包"></a>2. clone git-flow安装包</h2><p>  在C盘（此处随便，什么地方都可以）根目录下右键，点击<strong>Git Bash</strong> 运行：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> --recursive git://github.com/nvie/gitflow.git</span><br></pre></td></tr></table></figure>
-<p> 找到cmd(windows命令行)，右键点击-&gt;以管理员身份运行,进入到c:\gitflow文件夹,运行：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C:\gitflow&gt; contrib\msysgit-install.cmd <span class="string">&quot;C:\Program Files (x86)\Git&quot;</span></span><br></pre></td></tr></table></figure></p>
-<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>运行下面命令检测是否成功<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git flow <span class="built_in">help</span></span><br></pre></td></tr></table></figure><br><img src="/image/git-flow-success.jpg" alt="git-flow-success"></p>
-
-    
-
-    
-
-    
-
-  </div>
-  <div class="article-info article-info-index">
-    
-    
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">git</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">git-flow</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-    
-	<div class="article-category tagcloud">
-		<i class="icon-book icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="/categories/git//" class="article-tag-list-link color4">git</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-
-    
-    <p class="article-more-link">
-      <a class="article-more-a" href="/2015/09/10/windows-git-flow-install/">展开全文 >></a>
-    </p>
-    
-
-    
-    <div class="clearfix"></div>
-  </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/2/">&amp;laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span>
+      <a class="extend prev" rel="prev" href="/page/2/">&amp;laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/4/">Next &amp;raquo;</a>
     </nav>
   
 
@@ -1293,11 +1433,11 @@
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">操作系统</a>
+                <a href="javascript:void(0)" class="js-tag color5">docker-compose</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">docker-compose</a>
+                <a href="javascript:void(0)" class="js-tag color5">操作系统</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1321,19 +1461,19 @@
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">kprobe</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">ebpf</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">git</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">git-flow</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">kprobe</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">ebpf</a>
               </li>
             
             <div class="clearfix"></div>
